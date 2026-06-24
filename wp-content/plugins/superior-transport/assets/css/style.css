@@ -1,0 +1,204 @@
+/* A Superior Transportation v3.1 - DARK GREEN THEME */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --dg: #1a3a1a;
+  --mg: #2a5a2a;
+  --lg: #3a7a3a;
+  --gold: #c8a84b;
+  --yel: #f5c518;
+  --white: #fff;
+  --muted: rgba(255,255,255,0.6);
+  --border: rgba(255,255,255,0.15);
+  --shadow: 0 2px 12px rgba(0,0,0,0.35);
+  --r: 6px;
+  --nav-h: 60px;
+}
+html { scroll-behavior: smooth; }
+body.st-site { font-family: 'Open Sans',sans-serif; color:#fff; background:var(--dg); margin:0; padding-top:var(--nav-h); }
+h1,h2,h3,h4 { font-family:'Oswald',sans-serif; }
+a { color:var(--gold); text-decoration:none; }
+a:hover { color:var(--yel); text-decoration:underline; }
+.st-container { max-width:1200px; margin:0 auto; padding:0 20px; }
+.req { color:var(--yel); }
+
+/* NAV */
+.st-nav { position:fixed; top:0; left:0; right:0; z-index:1000; height:var(--nav-h); background:var(--dg); border-bottom:2px solid var(--gold); display:flex; align-items:center; justify-content:space-between; padding:0 20px; box-shadow:0 2px 8px rgba(0,0,0,.5); }
+.st-nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.st-nav-title { font-family:'Oswald',sans-serif; font-size:1rem; color:var(--gold); font-weight:700; letter-spacing:.04em; line-height:1.2; }
+.st-nav-sub { font-size:.68rem; color:var(--muted); letter-spacing:.06em; }
+.st-nav-links { display:flex; align-items:center; gap:2px; }
+.st-nav-links a { color:rgba(255,255,255,.85); font-size:.8rem; font-weight:600; padding:7px 11px; border-radius:4px; text-decoration:none; transition:all .15s; }
+.st-nav-links a:hover,.st-nav-links a.st-active { background:rgba(255,255,255,.1); color:var(--yel); text-decoration:none; }
+.st-nav-cta { background:var(--gold) !important; color:#1a3a1a !important; border-radius:4px !important; font-weight:700 !important; }
+.st-nav-cta:hover { background:var(--yel) !important; }
+.st-nav-hamburger { display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:8px; }
+.st-nav-hamburger span { display:block; width:24px; height:2px; background:#fff; border-radius:2px; }
+@media(max-width:768px){
+  .st-nav-hamburger{display:flex;}
+  .st-nav-links{display:none;position:absolute;top:var(--nav-h);left:0;right:0;background:var(--dg);border-top:1px solid var(--border);flex-direction:column;align-items:stretch;padding:10px 16px;gap:2px;}
+  .st-nav-links.st-nav-open{display:flex;}
+  .st-nav-links a{padding:12px 16px;}
+}
+
+/* HERO */
+.st-hero { position:relative; min-height:420px; background:linear-gradient(180deg,#0a1a0a 0%,#1a3a1a 60%,#0f2a0f 100%); display:flex; align-items:center; justify-content:center; text-align:center; overflow:hidden; }
+.st-hero::before { content:''; position:absolute; inset:0; background:url('https://asuperiortransportation.com/wp-content/uploads/2026/05/hockeyma.jpg') center/cover no-repeat; opacity:.12; }
+.st-hero-content { position:relative; z-index:1; padding:50px 20px; max-width:860px; }
+.st-hero-logo { margin-bottom:16px; }
+.st-hero-logo img { max-height:90px; max-width:220px; }
+.st-hero h1 { font-size:clamp(1.8rem,4vw,2.8rem); color:var(--yel); text-shadow:0 2px 8px rgba(0,0,0,.6); margin-bottom:10px; }
+.st-hero p { color:rgba(255,255,255,.8); font-size:1rem; margin-bottom:18px; }
+.st-hero-badges { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:18px; }
+.st-badge { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; font-size:.72rem; font-weight:700; padding:4px 12px; border-radius:20px; }
+.st-hero-status { display:inline-block; padding:5px 16px; border-radius:20px; font-size:.82rem; font-weight:700; margin-bottom:10px; }
+.st-hero-status.open { background:rgba(46,125,50,.4); color:#a5d6a7; border:1px solid #388e3c; }
+.st-hero-status.closed { background:rgba(183,28,28,.4); color:#ef9a9a; border:1px solid #c62828; }
+.st-hero-note { color:rgba(255,255,255,.5); font-size:.78rem; margin-top:10px; }
+
+/* BUTTONS */
+.st-btn-primary { display:inline-block; padding:11px 26px; border-radius:var(--r); background:var(--gold); color:#1a3a1a; font-family:'Oswald',sans-serif; font-size:.95rem; font-weight:700; border:none; cursor:pointer; transition:background .15s; text-decoration:none; letter-spacing:.04em; }
+.st-btn-primary:hover { background:var(--yel); color:#1a3a1a; text-decoration:none; }
+.st-btn-back { display:inline-block; padding:9px 18px; border-radius:var(--r); background:rgba(255,255,255,.08); color:rgba(255,255,255,.7); border:1px solid var(--border); font-size:.88rem; cursor:pointer; transition:all .15s; }
+.st-btn-back:hover { background:rgba(255,255,255,.14); color:#fff; }
+.st-btn-secondary { display:inline-block; padding:9px 18px; border-radius:var(--r); background:var(--mg); color:#fff; border:1px solid rgba(255,255,255,.2); font-size:.88rem; font-weight:600; cursor:pointer; transition:background .15s; }
+.st-btn-secondary:hover { background:var(--lg); }
+
+/* BOOKING */
+.st-booking { background:var(--dg); padding:40px 0 60px; }
+.st-booking-layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:20px; }
+@media(max-width:900px){.st-booking-layout{grid-template-columns:1fr;}}
+
+.st-steps { display:flex; margin-bottom:18px; border-radius:var(--r); overflow:hidden; border:1px solid var(--border); }
+.st-step { flex:1; text-align:center; padding:10px 6px; font-size:.75rem; font-weight:700; background:rgba(255,255,255,.05); color:rgba(255,255,255,.4); font-family:'Oswald',sans-serif; letter-spacing:.04em; border-right:1px solid var(--border); }
+.st-step:last-child{border-right:none;}
+.st-step.active { background:#163016; color:var(--yel); border-bottom:2px solid var(--gold); }
+.st-step.done { background:rgba(46,125,50,.25); color:#81c784; }
+
+.st-booking-form-wrap { background:#163016; border:1px solid rgba(255,255,255,.12); border-radius:var(--r); padding:24px; box-shadow:var(--shadow); }
+.st-form-step h3 { font-size:1.2rem; color:var(--yel); margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,.15); letter-spacing:.04em; }
+.st-form-group { margin-bottom:14px; }
+.st-form-group label { display:block; font-size:.68rem; font-weight:700; letter-spacing:.1em; color:rgba(255,255,255,.6); margin-bottom:5px; font-family:'Oswald',sans-serif; }
+.st-form-group input,.st-form-group select,.st-form-group textarea { width:100%; padding:9px 12px; background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.15); border-radius:var(--r); font-size:.9rem; color:#fff; transition:border-color .15s; }
+.st-form-group input::placeholder { color:rgba(255,255,255,.3); }
+.st-form-group select option { background:#1a3a1a; color:#fff; }
+.st-form-group input:focus,.st-form-group select:focus,.st-form-group textarea:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 2px rgba(200,168,75,.2); }
+.st-form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+@media(max-width:500px){.st-form-row{grid-template-columns:1fr;}}
+.st-input-wrap { position:relative; }
+.st-input-wrap input { padding-right:42px; }
+.st-locate-btn { position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:1rem; color:var(--gold); }
+.st-form-actions { display:flex; gap:10px; align-items:center; margin-top:18px; }
+.st-form-error { background:rgba(198,40,40,.2); border:1px solid rgba(198,40,40,.4); border-radius:4px; padding:9px 13px; font-size:.82rem; color:#ef9a9a; margin-top:10px; }
+
+.st-av-note { background:rgba(0,0,0,.2); border-left:3px solid var(--gold); border-radius:4px; padding:10px 14px; font-size:.8rem; line-height:1.6; margin:14px 0; color:rgba(255,255,255,.6); }
+.st-av-note a { color:var(--gold); font-weight:600; }
+
+.st-fare-box { background:rgba(0,0,0,.3); border:1px solid var(--border); border-radius:var(--r); padding:14px 18px; margin:14px 0; }
+.st-fare-row { display:flex; justify-content:space-between; color:rgba(255,255,255,.6); font-size:.88rem; padding:3px 0; }
+.st-fare-total { color:var(--yel); font-size:1.15rem; font-weight:700; font-family:'Oswald',sans-serif; border-top:1px solid var(--border); margin-top:7px; padding-top:7px; }
+
+.st-summary-box { background:rgba(0,0,0,.2); border:1px solid var(--border); border-radius:var(--r); padding:12px 16px; margin:14px 0; }
+.st-summary-row { display:flex; justify-content:space-between; font-size:.88rem; color:rgba(255,255,255,.6); padding:3px 0; }
+.st-summary-total { color:var(--yel); font-weight:700; font-size:1.05rem; border-top:1px solid var(--border); margin-top:6px; padding-top:6px; }
+
+.st-payment-options { display:flex; gap:10px; margin-bottom:4px; }
+.st-pay-opt { display:flex; align-items:center; gap:8px; cursor:pointer; padding:9px 14px; border:1px solid var(--border); border-radius:var(--r); font-size:.88rem; font-weight:600; color:#fff; background:rgba(0,0,0,.2); transition:all .15s; }
+.st-pay-opt:has(input:checked) { border-color:var(--gold); background:rgba(200,168,75,.12); color:var(--yel); }
+.st-pay-opt input { accent-color:var(--gold); }
+#card-container { min-height:48px; background:rgba(0,0,0,.3); border:1px solid var(--border); border-radius:var(--r); padding:12px; }
+.st-coupon-wrap { display:flex; gap:8px; }
+.st-coupon-wrap input { flex:1; }
+
+.st-total-box { background:rgba(0,0,0,.3); border:1px solid var(--border); border-radius:var(--r); padding:14px 18px; margin:14px 0; }
+.st-total-row { display:flex; justify-content:space-between; color:rgba(255,255,255,.6); font-size:.88rem; padding:3px 0; }
+.st-total-final { color:var(--yel); font-size:1.2rem; font-weight:800; font-family:'Oswald',sans-serif; border-top:1px solid var(--border); margin-top:7px; padding-top:7px; }
+.st-payment-note { font-size:.78rem; color:#ffb74d; margin:8px 0; }
+
+.st-success-box { text-align:center; padding:24px 16px; }
+.st-success-icon { font-size:2.8rem; margin-bottom:14px; }
+.st-success-box h3 { font-size:1.6rem; color:#81c784; margin-bottom:10px; }
+.st-success-box p { color:rgba(255,255,255,.7); margin-bottom:18px; }
+.st-av-info-card { background:rgba(0,0,0,.2); border:1px solid var(--border); border-radius:var(--r); padding:12px 16px; margin:14px 0; text-align:left; }
+.st-av-info-row { font-size:.82rem; color:rgba(255,255,255,.6); padding:3px 0; }
+
+.st-map-wrap { border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow); }
+#st-map { height:500px; width:100%; }
+#st-places-map { height:400px; width:100%; }
+.st-map-hint { font-size:.75rem; color:rgba(255,255,255,.5); padding:7px 12px; background:rgba(0,0,0,.3); }
+#st-cal-wrap { margin-top:28px; }
+#st-cal-wrap iframe { border-radius:var(--r); box-shadow:var(--shadow); }
+
+.st-why { background:#0f2a0f; padding:50px 0; text-align:center; border-top:1px solid rgba(255,255,255,.08); }
+.st-why h2 { color:var(--yel); font-size:1.8rem; margin-bottom:4px; }
+.st-why-sub { color:rgba(255,255,255,.5); margin-bottom:32px; font-size:.88rem; }
+.st-why-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px; }
+.st-why-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:var(--r); padding:24px 18px; }
+.st-why-icon { font-size:1.8rem; margin-bottom:10px; }
+.st-why-card strong { display:block; font-family:'Oswald',sans-serif; font-size:.95rem; color:var(--gold); margin-bottom:7px; letter-spacing:.04em; }
+.st-why-card p { font-size:.82rem; color:rgba(255,255,255,.6); line-height:1.5; }
+
+.st-info-strip { background:#1a3a1a; padding:26px 0; border-top:1px solid rgba(255,255,255,.1); }
+.st-info-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+.st-info-item { display:flex; flex-direction:column; gap:4px; }
+.st-info-item strong { font-size:.72rem; letter-spacing:.08em; color:var(--gold); font-family:'Oswald',sans-serif; }
+.st-info-item a,.st-info-item span { font-size:.88rem; color:rgba(255,255,255,.75); }
+.st-info-item a:hover { color:var(--yel); }
+
+.st-footer { background:#0a1a0a; color:rgba(255,255,255,.5); padding:36px 20px; text-align:center; border-top:1px solid rgba(255,255,255,.08); }
+.st-footer-links { display:flex; flex-wrap:wrap; justify-content:center; gap:6px 18px; margin-bottom:16px; }
+.st-footer-links a { color:rgba(255,255,255,.55); font-size:.82rem; text-decoration:none; transition:color .15s; }
+.st-footer-links a:hover { color:var(--gold); }
+.st-footer-legal { font-size:.74rem; line-height:1.8; color:rgba(255,255,255,.3); }
+
+.st-page-hero { background:linear-gradient(135deg,#0a1a0a 0%,#1a3a1a 100%); padding:54px 20px; text-align:center; color:#fff; border-bottom:2px solid var(--gold); }
+.st-page-hero h1 { font-size:2rem; color:var(--yel); margin-bottom:7px; }
+.st-page-hero p { color:rgba(255,255,255,.65); font-size:.95rem; }
+.st-page-body { padding:44px 0; background:var(--dg); }
+.st-page-hero--driver { background:linear-gradient(135deg,#0a1a0a,#102010); }
+.st-page-hero--gas { background:linear-gradient(135deg,#0a1a0a,#1a3a0a); }
+.st-page-hero--places { background:linear-gradient(135deg,#0a1a0a,#0a1a2a); }
+
+.st-places-intro { margin-bottom:28px; font-size:.95rem; color:rgba(255,255,255,.65); }
+.st-places-intro a { color:var(--gold); }
+.st-places-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:18px; margin-bottom:36px; }
+.st-place-card { background:#163016; border:1px solid rgba(255,255,255,.1); border-radius:var(--r); padding:18px; box-shadow:var(--shadow); transition:transform .15s,border-color .15s; }
+.st-place-card:hover { transform:translateY(-2px); border-color:var(--gold); }
+.st-place-tag { font-size:.68rem; font-weight:700; color:var(--gold); letter-spacing:.08em; margin-bottom:7px; font-family:'Oswald',sans-serif; }
+.st-place-card h3 { font-size:.95rem; color:#fff; margin-bottom:7px; }
+.st-place-card p { font-size:.82rem; color:rgba(255,255,255,.6); line-height:1.5; margin-bottom:13px; }
+.st-place-book { display:inline-block; padding:7px 14px; background:var(--gold); color:#1a3a1a; border-radius:4px; font-size:.78rem; font-weight:700; text-decoration:none; font-family:'Oswald',sans-serif; }
+.st-place-book:hover { background:var(--yel); color:#1a3a1a; text-decoration:none; }
+.st-places-map-wrap h2 { margin-bottom:12px; color:var(--yel); }
+
+.st-gas-current { background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.1); border-radius:var(--r); padding:26px; text-align:center; margin-bottom:26px; }
+.st-gas-current-label { font-size:.76rem; letter-spacing:.1em; color:rgba(255,255,255,.5); margin-bottom:7px; font-family:'Oswald',sans-serif; }
+.st-gas-current-price { font-size:2.8rem; font-weight:800; color:var(--yel); font-family:'Oswald',sans-serif; }
+.st-gas-stats { font-size:.82rem; color:rgba(255,255,255,.5); margin-top:8px; }
+.st-gas-chart-wrap { margin:26px 0; background:rgba(0,0,0,.2); border-radius:var(--r); padding:16px; }
+.st-gas-table { width:100%; border-collapse:collapse; font-size:.8rem; }
+.st-gas-table th,.st-gas-table td { border:1px solid rgba(255,255,255,.1); padding:6px 9px; text-align:center; color:rgba(255,255,255,.75); }
+.st-gas-table th { background:rgba(0,0,0,.3); color:var(--gold); font-family:'Oswald',sans-serif; }
+.gas-high { background:rgba(198,40,40,.2); color:#ef9a9a; font-weight:700; }
+.gas-low  { background:rgba(46,125,50,.2); color:#a5d6a7; font-weight:700; }
+.st-empty-notice { color:rgba(255,255,255,.5); font-style:italic; padding:20px 0; }
+
+.st-driver-login { max-width:380px; margin:0 auto; background:#163016; border:1px solid rgba(255,255,255,.1); border-radius:var(--r); padding:28px; box-shadow:var(--shadow); }
+.st-driver-login h2 { color:var(--yel); margin-bottom:18px; }
+.st-booking-table-wrap { overflow-x:auto; }
+.st-booking-table { width:100%; border-collapse:collapse; font-size:.8rem; }
+.st-booking-table th { background:rgba(0,0,0,.4); color:var(--gold); padding:9px 11px; text-align:left; font-family:'Oswald',sans-serif; letter-spacing:.04em; }
+.st-booking-table td { padding:8px 11px; border-bottom:1px solid rgba(255,255,255,.08); color:rgba(255,255,255,.8); }
+.st-booking-table tr:nth-child(even) td { background:rgba(0,0,0,.15); }
+.st-status-badge { display:inline-block; padding:2px 8px; border-radius:3px; font-size:.7rem; font-weight:700; color:#fff; }
+.st-status-pending   { background:#e65100; }
+.st-status-confirmed { background:#1565c0; }
+.st-status-completed { background:#2e7d32; }
+.st-status-cancelled { background:#555; }
+
+@media(max-width:600px){
+  .st-steps{font-size:.62rem;}
+  .st-booking-form-wrap{padding:16px;}
+  #st-map{height:300px;}
+  .st-why-grid{grid-template-columns:1fr 1fr;}
+  .st-page-hero h1{font-size:1.6rem;}
+}
