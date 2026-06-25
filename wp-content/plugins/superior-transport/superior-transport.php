@@ -33,15 +33,16 @@ function st_enqueue_assets() {
     }
 
     wp_localize_script( 'st-app', 'ST', [
-        'ajax'      => admin_url('admin-ajax.php'),
-        'nonce'     => wp_create_nonce('st_nonce'),
-        'homeUrl'   => home_url('/'),
-        'phone'     => $s['phone'] ?? '906-370-4094',
-        'sqAppId'   => $s['square_app_id'] ?? '',
-        'sqToken'   => $s['square_token'] ?? '',
-        'flatMiles' => $s['flat_rate_miles'] ?? '5',
-        'flatPrice' => $s['flat_rate_price'] ?? '10.00',
-        'perMile'   => $s['per_mile'] ?? '2.50',
-        'baseRate'  => $s['base_rate'] ?? '3.00',
+        'ajax'         => admin_url('admin-ajax.php'),
+        'nonce'        => wp_create_nonce('st_nonce'),
+        'homeUrl'      => home_url('/'),
+        'phone'        => $s['phone'] ?? '906-370-4094',
+        'sqAppId'      => $s['square_app_id'] ?? '',
+        'sqToken'      => $s['square_token'] ?? '',
+        'sqLocationId' => $s['square_location'] ?? '',
+        'flatMiles'    => $s['flat_rate_miles'] ?? '5',
+        'flatPrice'    => $s['flat_rate_price'] ?? '10.00',
+        'perMile'      => $s['per_mile'] ?? '2.50',
+        'baseRate'     => $s['base_rate'] ?? '3.00',
     ]);
 }

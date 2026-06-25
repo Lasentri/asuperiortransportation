@@ -98,12 +98,67 @@ function stSyncTotals(){
     if(sumFare) sumFare.textContent='$'+stFinalFare.toFixed(2);
 }
 
-async function stInitSquare(){
-    if(!window.ST||!ST.sqAppId) return;
-    if(typeof Square==='undefined') return;
-    try{squarePayments=Square.payments(ST.sqAppId,{location:ST.sqLocation||''});squareCard=await squarePayments.card();await squareCard.attach('#card-container');}
-    catch(e){console.warn('Square init error:',e);}
+async function stShowPaymentPopup(){
+    var overlay=document.createElement('div');
+    overlay.id='st-pay-overlay';
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    var modal=document.createElement('div');
+    modal.style.cssText='background:#122812;border:2px solid #c8a84b;border-radius:10px;padding:28px;width:100%;max-width:400px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.6);';
+    modal.innerHTML='<h3 style="font-family:Oswald,sans-serif;color:#c8a84b;margin:0 0 6px;font-size:1.2rem;letter-spacing:.06em">CARD PAYMENT</h3>'
+        +'<div style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:16px">Total due: <strong style="color:#f5c518;font-size:1.15rem" id="st-popup-total">$0.00</strong></div>'
+        +'<div id="st-popup-card" style="background:#fff;border-radius:6px;padding:10px;min-height:50px;margin-bottom:14px"></div>'
+        +'<div id="st-popup-error" style="color:#ef9a9a;font-size:.82rem;margin-bottom:10px;display:none;background:rgba(198,40,40,.2);padding:8px 12px;border-radius:4px;"></div>'
+        +'<div style="display:flex;gap:10px;margin-top:4px">'
+        +'<button id="st-popup-cancel" style="flex:1;padding:11px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);border-radius:6px;cursor:pointer;font-size:.88rem">Cancel</button>'
+        +'<button id="st-popup-pay" style="flex:2;padding:11px;background:#c8a84b;border:none;color:#0f2a0f;border-radius:6px;cursor:pointer;font-weight:700;font-size:.95rem;font-family:Oswald,sans-serif;letter-spacing:.05em">PAY NOW</button>'
+        +'</div>';
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    var tot=document.getElementById('st-popup-total');
+    if(tot) tot.textContent='$'+stFinalFare.toFixed(2);
+    function closePopup(){if(squareCard){try{squareCard.destroy();}catch(e){} squareCard=null;} squarePayments=null; overlay.remove();}
+    overlay.addEventListener('click',function(e){if(e.target===overlay) closePopup();});
+    document.getElementById('st-popup-cancel').addEventListener('click',closePopup);
+    async function initCard(){
+        if(typeof Square==='undefined'){setTimeout(initCard,300);return;}
+        try{
+            squarePayments=Square.payments(ST.sqAppId,{locationId:ST.sqLocationId});
+            squareCard=await squarePayments.card({style:{'.input-container':{borderColor:'#ccc',borderRadius:'4px'},'input':{color:'#000','font-size':'16px'}}});
+            await squareCard.attach('#st-popup-card');
+        }catch(e){
+            var err=document.getElementById('st-popup-error');
+            if(err){err.textContent='Card form failed to load. Call 906-370-4094 to pay.';err.style.display='block';}
+        }
+    }
+    initCard();
+    document.getElementById('st-popup-pay').addEventListener('click',async function(){
+        var btn=this,errEl=document.getElementById('st-popup-error');
+        btn.disabled=true;btn.textContent='Processing...';
+        try{
+            var result=await squareCard.tokenize();
+            if(result.status!=='OK'){
+                if(errEl){errEl.textContent='Card error: '+(result.errors?result.errors[0].message:'Please try again');errEl.style.display='block';}
+                btn.disabled=false;btn.textContent='PAY NOW';return;
+            }
+            var cd=new FormData();
+            cd.append('action','st_charge_square');cd.append('nonce',ST.nonce);
+            cd.append('token',result.token);cd.append('amount',Math.round(stFinalFare*100));
+            cd.append('note','Ride booking - A Superior Transportation');
+            var cr=await fetch(ST.ajax,{method:'POST',body:cd});
+            var cj=await cr.json();
+            if(!cj.success){
+                if(errEl){errEl.textContent='Payment failed: '+(cj.data?cj.data.message:'Please call us');errEl.style.display='block';}
+                btn.disabled=false;btn.textContent='PAY NOW';return;
+            }
+            closePopup();
+            stSubmitBooking(cj.data.payment_id||'');
+        }catch(e){
+            if(errEl){errEl.textContent='Error processing payment. Call '+ST.phone;errEl.style.display='block';}
+            btn.disabled=false;btn.textContent='PAY NOW';
+        }
+    });
 }
+function stInitSquare(){}
 
 document.addEventListener('DOMContentLoaded',function(){
     var calBtn=document.getElementById('st-show-calendar'),calWrap=document.getElementById('st-cal-wrap');
@@ -111,7 +166,30 @@ document.addEventListener('DOMContentLoaded',function(){
 
     document.querySelectorAll('input[name="payment_method"]').forEach(function(r){r.addEventListener('change',function(){var cw=document.getElementById('st-card-wrap');if(cw) cw.style.display=this.value==='card'?'block':'none';});});
 
-    if(window.ST&&ST.sqAppId){var sq=document.createElement('script');sq.src='https://web.squarecdn.com/v1/square.js';sq.onload=stInitSquare;document.head.appendChild(sq);}
+    
+function stSubmitBooking(paymentId){
+    var errEl=document.getElementById('st-form-error-3');
+    var fd=new FormData();
+    fd.append('action','st_book_ride');fd.append('nonce',ST.nonce);
+    fd.append('name',(document.getElementById('st-name')||{}).value||'');
+    fd.append('phone',(document.getElementById('st-phone')||{}).value||'');
+    fd.append('email',(document.getElementById('st-email')||{}).value||'');
+    fd.append('pickup',(document.getElementById('st-pickup')||{}).value||'');
+    fd.append('dropoff',(document.getElementById('st-dropoff')||{}).value||'');
+    fd.append('date',(document.getElementById('st-date')||{}).value||'');
+    fd.append('time',(document.getElementById('st-time')||{}).value||'');
+    fd.append('passengers',(document.getElementById('st-passengers')||{}).value||1);
+    fd.append('notes',(document.getElementById('st-notes')||{}).value||'');
+    fd.append('distance',stCalcMiles.toFixed(2));
+    fd.append('fare',stFinalFare.toFixed(2));
+    fd.append('coupon',(document.getElementById('st-coupon')||{}).value||'');
+    fd.append('payment_id',paymentId);
+    fetch(ST.ajax,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
+        if(d.success){var msg=document.getElementById('st-success-msg');if(msg)msg.textContent=d.data.message||'Booking confirmed.';showStep(4);}
+        else{if(errEl){errEl.textContent=(d.data&&d.data.message)||'Booking failed. Please call us.';errEl.style.display='block';}}
+    }).catch(function(){if(errEl){errEl.textContent='Network error. Please call '+ST.phone;errEl.style.display='block';}});
+}
+if(window.ST&&ST.sqAppId){var sq=document.createElement('script');sq.src='https://web.squarecdn.com/v1/square.js';document.head.appendChild(sq);}
 
     var locBtn=document.getElementById('st-locate-me');
     if(locBtn){locBtn.addEventListener('click',function(){if(!navigator.geolocation){alert('Geolocation not supported.');return;}locBtn.textContent='⌛';navigator.geolocation.getCurrentPosition(function(pos){locBtn.textContent='📍';var ll=new google.maps.LatLng(pos.coords.latitude,pos.coords.longitude);stReverseGeocode(ll,'pickup');if(stMap) stMap.panTo(ll);},function(){locBtn.textContent='📍';alert('Could not get location.');});});}
@@ -131,26 +209,10 @@ document.addEventListener('DOMContentLoaded',function(){
     var back3=document.getElementById('st-back-3'); if(back3) back3.addEventListener('click',function(){showStep(2);});
 
     var confirmBtn=document.getElementById('st-confirm-btn');
-    if(confirmBtn){confirmBtn.addEventListener('click',async function(){
-        var errEl=document.getElementById('st-form-error-3'),payMethod=(document.querySelector('input[name="payment_method"]:checked')||{}).value||'cash',paymentId='';
-        confirmBtn.disabled=true;confirmBtn.textContent='Processing...';
-        if(payMethod==='card'&&squareCard){
-            try{var result=await squareCard.tokenize();if(result.status!=='OK'){if(errEl){errEl.textContent='Card error: '+(result.errors?result.errors[0].message:'Unknown error');errEl.style.display='block';}confirmBtn.disabled=false;confirmBtn.textContent='Confirm & Book →';return;}
-            var chargeData=new FormData();chargeData.append('action','st_charge_square');chargeData.append('nonce',ST.nonce);chargeData.append('token',result.token);chargeData.append('amount',Math.round(stFinalFare*100));chargeData.append('note','Ride: '+((document.getElementById('st-pickup')||{}).value||'')+' to '+((document.getElementById('st-dropoff')||{}).value||''));
-            var chargeResp=await fetch(ST.ajax,{method:'POST',body:chargeData});var chargeJson=await chargeResp.json();
-            if(!chargeJson.success){if(errEl){errEl.textContent='Payment failed: '+(chargeJson.data?chargeJson.data.message:'Try again or pay cash.');errEl.style.display='block';}confirmBtn.disabled=false;confirmBtn.textContent='Confirm & Book →';return;}
-            paymentId=chargeJson.data.payment_id||'';}catch(e){if(errEl){errEl.textContent='Payment error. Please call us at '+ST.phone;errEl.style.display='block';}confirmBtn.disabled=false;confirmBtn.textContent='Confirm & Book →';return;}
-        }
-        var fd=new FormData();fd.append('action','st_book_ride');fd.append('nonce',ST.nonce);
-        fd.append('name',(document.getElementById('st-name')||{}).value||'');fd.append('phone',(document.getElementById('st-phone')||{}).value||'');fd.append('email',(document.getElementById('st-email')||{}).value||'');
-        fd.append('pickup',(document.getElementById('st-pickup')||{}).value||'');fd.append('dropoff',(document.getElementById('st-dropoff')||{}).value||'');
-        fd.append('date',(document.getElementById('st-date')||{}).value||'');fd.append('time',(document.getElementById('st-time')||{}).value||'');
-        fd.append('passengers',(document.getElementById('st-passengers')||{}).value||1);fd.append('notes',(document.getElementById('st-notes')||{}).value||'');
-        fd.append('distance',stCalcMiles.toFixed(2));fd.append('fare',stFinalFare.toFixed(2));fd.append('coupon',(document.getElementById('st-coupon')||{}).value||'');fd.append('payment_id',paymentId);
-        fetch(ST.ajax,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
-            if(d.success){var msg=document.getElementById('st-success-msg');if(msg) msg.textContent=d.data.message||'Booking confirmed.';showStep(4);}
-            else{if(errEl){errEl.textContent=(d.data&&d.data.message)||'Booking failed. Please call us.';errEl.style.display='block';}confirmBtn.disabled=false;confirmBtn.textContent='Confirm & Book →';}
-        }).catch(function(){if(errEl){errEl.textContent='Network error. Please call '+ST.phone;errEl.style.display='block';}confirmBtn.disabled=false;confirmBtn.textContent='Confirm & Book →';});
+    if(confirmBtn){confirmBtn.addEventListener('click',function(){
+        var payMethod=(document.querySelector('input[name="payment_method"]:checked')||{}).value||'cash';
+        if(payMethod==='card'){stShowPaymentPopup();}
+        else{stSubmitBooking('');}
     });}
 
     document.querySelectorAll('.st-place-book').forEach(function(btn){btn.addEventListener('click',function(){var place=btn.getAttribute('data-place');if(place) sessionStorage.setItem('st_dropoff_preset',place);});});
