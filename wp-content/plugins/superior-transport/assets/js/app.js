@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.0.5 */
+/* A Superior Transportation - app.js v3.0.6 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -165,7 +165,7 @@ async function stShowPaymentPopup(){
         +'</div>'
         +'<div id="st-popup-error" style="color:#ef9a9a;font-size:.82rem;margin-bottom:10px;display:none;background:rgba(198,40,40,.2);padding:8px 12px;border-radius:4px;"></div>'
         +'<div id="st-popup-btns" style="display:flex;gap:10px;margin-top:4px">'
-        +'<button id="st-popup-cancel" style="flex:1;padding:11px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);border-radius:6px;cursor:pointer;font-size:.88rem">Cancel</button>'
+        +'<button id="st-popup-cancel" style="flex:1;padding:11px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);border-radius:6px;cursor:pointer;font-size:.88rem">Thank You! See You Soon!</button>'
         +'<button id="st-popup-pay" style="flex:2;padding:11px;background:#c8a84b;border:none;color:#0f2a0f;border-radius:6px;cursor:pointer;font-weight:700;font-size:.95rem;font-family:Oswald,sans-serif;letter-spacing:.05em">PAY NOW</button>'
         +'</div>';
 
