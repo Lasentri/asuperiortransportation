@@ -40,7 +40,7 @@ a:hover { color:var(--yel); text-decoration:underline; }
   .st-nav-links a{padding:12px 16px;}
 }
 
-/* HERO */
+/* HERO 23*/
 .st-hero { position:relative; min-height:420px; background:linear-gradient(180deg,#0a1a0a 0%,#1a3a1a 60%,#0f2a0f 100%); display:flex; align-items:center; justify-content:center; text-align:center; overflow:hidden; }
 .st-hero::before { content:''; position:absolute; inset:0; background:url('https://asuperiortransportation.com/wp-content/uploads/2026/05/hockeyma.jpg') center/cover no-repeat; opacity:.12; }
 .st-hero-content { position:relative; z-index:1; padding:50px 20px; max-width:860px; }
