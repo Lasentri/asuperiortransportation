@@ -3,12 +3,12 @@
  * Plugin Name: A Superior Transportation - Full Site v3.0
  * Plugin URI:  https://asuperiortransportation.com
  * Description: Complete website - Homepage booking, Suggested Places, Gas Tracker, Calendar, Square Payments.
- * Version:     3.0.0
+ * Version:     3.0.1
  * Author:      A Superior Transportation
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'ST_VERSION', '3.0.0' );
+define( 'ST_VERSION', '3.0.1' );
 define( 'ST_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'ST_URL',     plugin_dir_url( __FILE__ ) );
 
@@ -45,4 +45,24 @@ function st_enqueue_assets() {
         'perMile'      => $s['per_mile'] ?? '2.50',
         'baseRate'     => $s['base_rate'] ?? '3.00',
     ]);
+}
+
+/**
+ * Allow Square Web Payments SDK resources via Content-Security-Policy.
+ * Square's card iframe loads scripts, styles, and fonts from its own CDN.
+ * Without these, browsers block the card form from rendering.
+ */
+add_filter( 'wp_headers', 'st_csp_headers' );
+function st_csp_headers( $headers ) {
+    $csp = implode( '; ', [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' https://web.squarecdn.com https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://web.squarecdn.com",
+        "font-src 'self' https://fonts.gstatic.com https://web.squarecdn.com",
+        "frame-src https://web.squarecdn.com https://squareup.com",
+        "img-src 'self' data: https://maps.googleapis.com https://maps.gstatic.com https://www.gstatic.com",
+        "connect-src 'self' https://web.squarecdn.com https://connect.squareup.com https://maps.googleapis.com",
+    ]);
+    $headers['Content-Security-Policy'] = $csp;
+    return $headers;
 }
