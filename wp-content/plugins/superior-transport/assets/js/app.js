@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.1.2 */
+/* A Superior Transportation - app.js v3.1.3 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -63,12 +63,21 @@ function stApplyFlatRate(fr){
             : '\u2605 Fixed rate: '+fr.name+(passengers>=3?' (3+ pax surcharge applied)':'');
     }
     stSyncTotals();
+    /* Show exact address field */
+    var exactWrap = document.getElementById('st-exact-address-wrap');
+    if(exactWrap){
+        exactWrap.style.display = 'block';
+        var exactInput = document.getElementById('st-dropoff-exact');
+        if(exactInput){ exactInput.value=''; setTimeout(function(){ exactInput.focus(); }, 100); }
+    }
 }
 
 function stClearFlatRate(){
     stActiveFlatRate = null;
     var fareBox=document.getElementById('st-fare-box');
     if(fareBox){ var badge=fareBox.querySelector('.st-flat-rate-badge'); if(badge) badge.remove(); }
+    var exactWrap=document.getElementById('st-exact-address-wrap');
+    if(exactWrap){ exactWrap.style.display='none'; var ei=document.getElementById('st-dropoff-exact'); if(ei) ei.value=''; }
 }
 
 
@@ -297,7 +306,13 @@ function stSubmitBooking(paymentId){
     fd.append('phone',(document.getElementById('st-phone')||{}).value||'');
     fd.append('email',(document.getElementById('st-email')||{}).value||'');
     fd.append('pickup',(document.getElementById('st-pickup')||{}).value||'');
-    fd.append('dropoff',(document.getElementById('st-dropoff')||{}).value||'');
+    /* Use exact address if flat rate selected, otherwise standard dropoff */
+    var dropoffVal = (document.getElementById('st-dropoff')||{}).value||'';
+    var exactVal = (document.getElementById('st-dropoff-exact')||{}).value||'';
+    if(stActiveFlatRate && exactVal.trim()){
+        dropoffVal = exactVal.trim() + ' [Flat Rate Zone: ' + stActiveFlatRate.name + ']';
+    }
+    fd.append('dropoff', dropoffVal);
     fd.append('date',(document.getElementById('st-date')||{}).value||'');
     fd.append('time',(document.getElementById('st-time')||{}).value||'');
     fd.append('passengers',(document.getElementById('st-passengers')||{}).value||1);
@@ -459,6 +474,10 @@ function stOpenFlatRatePopup(){
                 /* Apply fare */
                 var fr = {name:name, address:addr, price:basePrice};
                 stApplyFlatRate(fr);
+
+                /* Clear exact address for fresh entry */
+                var exactEl=document.getElementById('st-dropoff-exact');
+                if(exactEl) exactEl.value='';
 
                 /* Close popup */
                 stCloseFlatRatePopup();
