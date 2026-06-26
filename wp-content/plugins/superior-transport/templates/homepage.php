@@ -176,6 +176,7 @@ include ST_DIR . 'templates/inc-header.php';
           </div>
           <p class="st-payment-note">⚠️ Rides over <?php echo floatval($s['flat_rate_miles']??5);?> miles require payment before departure.</p>
           <div class="st-form-error" id="st-form-error-3" style="display:none"></div>
+          <p style="font-size:.78rem;color:#81c784;margin-bottom:10px;text-align:center;">✅ Don't worry if your CC doesn't go through — our dispatcher will reach out with a secure payment link.</p>
           <div class="st-form-actions">
             <button type="button" id="st-back-3" class="st-btn-back">← Back</button>
             <button type="button" id="st-confirm-btn" class="st-btn-primary">Confirm &amp; Book →</button>
