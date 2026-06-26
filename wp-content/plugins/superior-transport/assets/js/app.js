@@ -1,9 +1,18 @@
-/* A Superior Transportation - app.js v3.0 */
+/* A Superior Transportation - app.js v3.0.1 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
 var stCalcFare=0,stCalcMiles=0,stDiscountAmt=0,stFinalFare=0;
 var squareCard=null,squarePayments=null;
+
+/* Load Square SDK immediately so it is ready before user hits Pay */
+(function(){
+    if(window.ST&&ST.sqAppId){
+        var sq=document.createElement('script');
+        sq.src='https://web.squarecdn.com/v1/square.js';
+        document.head.appendChild(sq);
+    }
+})();
 
 function stInitMap(){
     var mapEl=document.getElementById('st-map');
@@ -128,6 +137,7 @@ async function stShowPaymentPopup(){
         }catch(e){
             var err=document.getElementById('st-popup-error');
             if(err){err.textContent='Card form failed to load. Call 906-370-4094 to pay.';err.style.display='block';}
+            console.error('Square initCard error:',e);
         }
     }
     initCard();
@@ -160,13 +170,6 @@ async function stShowPaymentPopup(){
 }
 function stInitSquare(){}
 
-document.addEventListener('DOMContentLoaded',function(){
-    var calBtn=document.getElementById('st-show-calendar'),calWrap=document.getElementById('st-cal-wrap');
-    if(calBtn&&calWrap){calBtn.addEventListener('click',function(e){e.preventDefault();calWrap.style.display=calWrap.style.display==='none'?'block':'none';calBtn.textContent=calWrap.style.display==='none'?'View open times below':'Hide calendar';});}
-
-    document.querySelectorAll('input[name="payment_method"]').forEach(function(r){r.addEventListener('change',function(){var cw=document.getElementById('st-card-wrap');if(cw) cw.style.display=this.value==='card'?'block':'none';});});
-
-    
 function stSubmitBooking(paymentId){
     var errEl=document.getElementById('st-form-error-3');
     var fd=new FormData();
@@ -189,10 +192,15 @@ function stSubmitBooking(paymentId){
         else{if(errEl){errEl.textContent=(d.data&&d.data.message)||'Booking failed. Please call us.';errEl.style.display='block';}}
     }).catch(function(){if(errEl){errEl.textContent='Network error. Please call '+ST.phone;errEl.style.display='block';}});
 }
-if(window.ST&&ST.sqAppId){var sq=document.createElement('script');sq.src='https://web.squarecdn.com/v1/square.js';document.head.appendChild(sq);}
+
+document.addEventListener('DOMContentLoaded',function(){
+    var calBtn=document.getElementById('st-show-calendar'),calWrap=document.getElementById('st-cal-wrap');
+    if(calBtn&&calWrap){calBtn.addEventListener('click',function(e){e.preventDefault();calWrap.style.display=calWrap.style.display==='none'?'block':'none';calBtn.textContent=calWrap.style.display==='none'?'View open times below':'Hide calendar';});}
+
+    document.querySelectorAll('input[name="payment_method"]').forEach(function(r){r.addEventListener('change',function(){var cw=document.getElementById('st-card-wrap');if(cw) cw.style.display=this.value==='card'?'block':'none';});});
 
     var locBtn=document.getElementById('st-locate-me');
-    if(locBtn){locBtn.addEventListener('click',function(){if(!navigator.geolocation){alert('Geolocation not supported.');return;}locBtn.textContent='⌛';navigator.geolocation.getCurrentPosition(function(pos){locBtn.textContent='📍';var ll=new google.maps.LatLng(pos.coords.latitude,pos.coords.longitude);stReverseGeocode(ll,'pickup');if(stMap) stMap.panTo(ll);},function(){locBtn.textContent='📍';alert('Could not get location.');});});}
+    if(locBtn){locBtn.addEventListener('click',function(){if(!navigator.geolocation){alert('Geolocation not supported.');return;}locBtn.textContent='\u231b';navigator.geolocation.getCurrentPosition(function(pos){locBtn.textContent='\ud83d\udccd';var ll=new google.maps.LatLng(pos.coords.latitude,pos.coords.longitude);stReverseGeocode(ll,'pickup');if(stMap) stMap.panTo(ll);},function(){locBtn.textContent='\ud83d\udccd';alert('Could not get location.');});});}
 
     var couponBtn=document.getElementById('st-apply-coupon');
     if(couponBtn){couponBtn.addEventListener('click',function(){var code=(document.getElementById('st-coupon')||{}).value||'';var msg=document.getElementById('st-coupon-msg');if(!code.trim()){if(msg) msg.textContent='Enter a coupon code.';return;}var fd=new FormData();fd.append('action','st_check_coupon');fd.append('nonce',ST.nonce);fd.append('code',code);fd.append('fare',stCalcFare);fetch(ST.ajax,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){if(msg){msg.textContent=d.msg||'';msg.style.color=d.valid?'green':'red';}if(d.valid){stDiscountAmt=d.discount;stFinalFare=d.new_fare;stSyncTotals();}});});}
@@ -238,4 +246,3 @@ function stDrawGasChart(labels,prices){
     var ctx=document.getElementById('st-gas-chart');if(!ctx) return;
     new Chart(ctx,{type:'line',data:{labels:labels,datasets:[{label:'Gas Price ($/gal)',data:prices,borderColor:'#2e7d32',backgroundColor:'rgba(46,125,50,0.1)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#2e7d32',tension:0.3,fill:true}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '$'+c.parsed.y.toFixed(3);}}}},scales:{y:{ticks:{callback:function(v){return '$'+v.toFixed(2);}}}}}});
 }
-
