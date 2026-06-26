@@ -15,7 +15,7 @@ include ST_DIR . 'templates/inc-header.php';
 
     <div class="st-hero-logo">
       <div class="st-hero-logo-box">
-        <div class="st-hero-logo-icon"><img src="https://asuperiortransportation.com/wp-content/uploads/2026/06/logo3.png" width=80													 align=left></div>
+        <div class="st-hero-logo-icon"><img src="https://asuperiortransportation.com/wp-content/uploads/2026/06/logo3.png" width=80 align=left></div>
         <div class="st-hero-logo-text">
           <span class="st-hero-logo-name">A Superior Transportation</span>
           <span class="st-hero-logo-tag">&amp; Logistics · Est. 2017</span>
@@ -23,7 +23,7 @@ include ST_DIR . 'templates/inc-header.php';
       </div>
     </div>
 
-    <h1><font color=#FFFfff>Your Ride</font>. Your Schedule. <font color=#ffffff>Your UP.</font>													</h1>
+    <h1><font color=#FFFfff>Your Ride</font>. Your Schedule. <font color=#ffffff>Your UP.</font></h1>
     <p>Professional transportation across Houghton, Hancock, Calumet &amp; the entire Western U.P. Corridor</p>
     <div class="st-hero-badges">
       <span class="st-badge">✅ Metered &amp; Flat Rate</span>
@@ -31,20 +31,16 @@ include ST_DIR . 'templates/inc-header.php';
       <span class="st-badge">💳 Square &amp; Cash</span>
       <span class="st-badge">📞 Phone Confirmed</span>
       <span class="st-badge">🌙 Non-Midnight Daily</span>
-     </div>
+    </div>
     <div class="st-hero-status <?php echo $is_open ? 'open' : 'closed';?>">
       <?php echo $is_open ? '🟢 Open Now' : '🔴 Currently Closed';?> &nbsp;·&nbsp; <?php echo esc_html("$open – $close");?>
     </div>
     <p class="st-hero-note">All taxis outside Houghton &amp; Hancock require payment before departure.</p>
- <a href="https://asuperiortransportation.com/76-2/"><span class="st-badge">🌙 Check Availability</span></a> 
+    <a href="https://asuperiortransportation.com/76-2/"><span class="st-badge">🌙 Check Availability</span></a>
+    <a href="https://asuperiortransportation.com/suggested-places/"><span class="st-badge">✅ Tour Suggestions</span></a>
+    <a href="https://asuperiortransportation.com/up-gas-price-tracker/"><span class="st-badge">Transparency Promise</span></a>
 
-<a href="https://asuperiortransportation.com/suggested-places/"><span class="st-badge">✅ Tour Suggestions</span></a>
-<a href="https://asuperiortransportation.com/up-gas-price-tracker/"><span class="st-badge">Transparency Promise</span></a>
-
-
-
-
-</div>
+  </div>
 </section>
 
 <!-- BOOKING FORM -->
@@ -53,9 +49,8 @@ include ST_DIR . 'templates/inc-header.php';
 
     <div class="st-steps">
       <div class="st-step active" id="step-ind-1">① Ride Details</div>
-      <div class="st-step" id="step-ind-2">② Contact</div>
-      <div class="st-step" id="step-ind-3">③ Payment</div>
-      <div class="st-step" id="step-ind-4">④ Done</div>
+      <div class="st-step" id="step-ind-2">② Contact &amp; Book</div>
+      <div class="st-step" id="step-ind-3">③ Done</div>
     </div>
 
     <div class="st-booking-layout">
@@ -111,7 +106,7 @@ include ST_DIR . 'templates/inc-header.php';
           </div>
         </div>
 
-        <!-- STEP 2 -->
+        <!-- STEP 2 - Contact + Confirm -->
         <div class="st-form-step" id="step-2" style="display:none">
           <h3>Contact Info</h3>
           <div class="st-form-group">
@@ -136,32 +131,9 @@ include ST_DIR . 'templates/inc-header.php';
           <?php endif;?>
           <div class="st-summary-box">
             <div class="st-summary-row"><span>Distance</span><span id="st-sum-miles">—</span></div>
-            <div class="st-summary-row st-summary-total"><span>Total</span><span id="st-sum-fare">—</span></div>
+            <div class="st-summary-row st-summary-total"><span>Estimated Fare</span><span id="st-sum-fare">—</span></div>
           </div>
-          <div class="st-form-error" id="st-form-error-2" style="display:none"></div>
-          <div class="st-form-actions">
-            <button type="button" id="st-back-2" class="st-btn-back">← Back</button>
-            <button type="button" id="st-next-2" class="st-btn-primary">Next: Payment →</button>
-          </div>
-        </div>
-
-        <!-- STEP 3 -->
-        <div class="st-form-step" id="step-3" style="display:none">
-          <h3>Payment</h3>
-          <div class="st-form-group">
-            <label>PAYMENT METHOD</label>
-            <div class="st-payment-options">
-              <label class="st-pay-opt"><input type="radio" name="payment_method" value="card" checked> 💳 Card via Square</label>
-              <label class="st-pay-opt"><input type="radio" name="payment_method" value="cash"> 💵 Cash</label>
-            </div>
-          </div>
-          <div id="st-card-wrap">
-            <div class="st-form-group">
-              <label>CARD DETAILS</label>
-              <div id="card-container"></div>
-            </div>
-          </div>
-          <div class="st-form-group">
+          <div class="st-form-group" style="margin-top:10px">
             <label>COUPON CODE</label>
             <div class="st-coupon-wrap">
               <input type="text" id="st-coupon" placeholder="Enter coupon code" style="text-transform:uppercase">
@@ -169,29 +141,23 @@ include ST_DIR . 'templates/inc-header.php';
             </div>
             <div id="st-coupon-msg" style="margin-top:6px;font-size:.85rem"></div>
           </div>
-          <div class="st-total-box">
-            <div class="st-total-row"><span>Subtotal</span><span id="st-total-sub">$0.00</span></div>
-            <div class="st-total-row" id="st-discount-row" style="display:none;color:#81c784"><span>Discount</span><span id="st-total-discount">-$0.00</span></div>
-            <div class="st-total-row st-total-final"><span>Total Due</span><span id="st-total-final">$0.00</span></div>
-          </div>
-          <p class="st-payment-note">⚠️ Rides over <?php echo floatval($s['flat_rate_miles']??5);?> miles require payment before departure.</p>
-          <div class="st-form-error" id="st-form-error-3" style="display:none"></div>
+          <div class="st-form-error" id="st-form-error-2" style="display:none"></div>
           <p style="font-size:.78rem;color:#81c784;margin-bottom:10px;text-align:center;">✅ Don't worry if your CC doesn't go through — our dispatcher will reach out with a secure payment link.</p>
           <div class="st-form-actions">
-            <button type="button" id="st-back-3" class="st-btn-back">← Back</button>
+            <button type="button" id="st-back-2" class="st-btn-back">← Back</button>
             <button type="button" id="st-confirm-btn" class="st-btn-primary">Confirm &amp; Book →</button>
           </div>
         </div>
 
-        <!-- STEP 4 -->
-        <div class="st-form-step" id="step-4" style="display:none">
+        <!-- STEP 3 - Done -->
+        <div class="st-form-step" id="step-3" style="display:none">
           <div class="st-success-box">
             <div class="st-success-icon">✅</div>
             <h3>Booking Confirmed!</h3>
             <p id="st-success-msg">We will call you shortly to confirm your ride.</p>
             <div class="st-av-info-card">
               <div class="st-av-info-row">📍 Houghton · Hancock · Calumet</div>
-              <div class="st-av-info-row">💳 Card payments confirmed at booking</div>
+              <div class="st-av-info-row">💳 Dispatcher will send payment link if needed</div>
               <div class="st-av-info-row">💵 Cash paid at time of service</div>
             </div>
             <a href="tel:9063704094" class="st-btn-primary" style="display:inline-block;margin-top:12px">📞 906-370-4094</a>
