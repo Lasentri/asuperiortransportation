@@ -3,12 +3,12 @@
  * Plugin Name: A Superior Transportation - Full Site v3.0
  * Plugin URI:  https://asuperiortransportation.com
  * Description: Complete website - Homepage booking, Suggested Places, Gas Tracker, Calendar, Square Payments.
- * Version:     3.0.3
+ * Version:     3.0.6
  * Author:      A Superior Transportation
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'ST_VERSION', '3.0.3' );
+define( 'ST_VERSION', '3.0.6' );
 define( 'ST_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'ST_URL',     plugin_dir_url( __FILE__ ) );
 
@@ -48,25 +48,23 @@ function st_enqueue_assets() {
 }
 
 /**
- * Remove any CSP headers set by other plugins, then set our own
- * that fully covers Square Web Payments SDK requirements.
+ * CSP covering Square Web Payments SDK + Google Calendar embed + Google Maps
  */
 add_filter( 'wp_headers', 'st_csp_headers', 99 );
 function st_csp_headers( $headers ) {
-    // Remove any pre-existing CSP that could conflict
     unset( $headers['Content-Security-Policy'] );
     unset( $headers['content-security-policy'] );
 
     $csp = implode( '; ', [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://web.squarecdn.com https://squareup.com https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://web.squarecdn.com https://squareup.com https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net https://apis.google.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://web.squarecdn.com",
         "font-src 'self' data: https://fonts.gstatic.com https://web.squarecdn.com",
-        "frame-src https://web.squarecdn.com https://squareup.com https://pci-connect.squareup.com",
-        "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://www.gstatic.com",
-        "connect-src 'self' https://web.squarecdn.com https://squareup.com https://pci-connect.squareup.com https://connect.squareup.com https://maps.googleapis.com https://csp-report.browser-intake-datadoghq.com https://o160250.ingest.sentry.io",
+        "frame-src 'self' https://web.squarecdn.com https://squareup.com https://pci-connect.squareup.com https://calendar.google.com https://www.google.com",
+        "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://www.gstatic.com https://calendar.google.com",
+        "connect-src 'self' https://web.squarecdn.com https://squareup.com https://pci-connect.squareup.com https://connect.squareup.com https://maps.googleapis.com https://csp-report.browser-intake-datadoghq.com https://o160250.ingest.sentry.io https://apis.google.com",
         "worker-src 'self' blob:",
-        "child-src 'self' blob: https://web.squarecdn.com https://squareup.com",
+        "child-src 'self' blob: https://web.squarecdn.com https://squareup.com https://calendar.google.com",
     ]);
 
     $headers['Content-Security-Policy'] = $csp;
