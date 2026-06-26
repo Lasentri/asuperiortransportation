@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.1.0 */
+/* A Superior Transportation - app.js v3.1.1 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -13,6 +13,64 @@ var squareCard=null,squarePayments=null;
         document.head.appendChild(sq);
     }
 })();
+
+/* Load flat rates from server */
+var stFlatRates = [];
+var stActiveFlatRate = null;
+(function(){
+    fetch(window.ST ? ST.ajax : '', {
+        method:'POST',
+        body: new URLSearchParams({action:'st_get_flat_rates'})
+    }).then(function(r){return r.json();}).then(function(d){
+        if(d.success) stFlatRates = d.data;
+    }).catch(function(){});
+})();
+
+function stMatchFlatRate(dropoff){
+    if(!dropoff || !stFlatRates.length) return null;
+    var lower = dropoff.toLowerCase();
+    for(var i=0;i<stFlatRates.length;i++){
+        var fr = stFlatRates[i];
+        if(lower.indexOf(fr.name.toLowerCase()) !== -1 ||
+           lower.indexOf((fr.address||'').toLowerCase()) !== -1){
+            return fr;
+        }
+    }
+    return null;
+}
+
+function stApplyFlatRate(fr){
+    stActiveFlatRate = fr;
+    var passengers = parseInt((document.getElementById('st-passengers')||{}).value||1);
+    var price = passengers >= 3 ? fr.price * 1.40 : fr.price;
+    stCalcFare = price; stFinalFare = price; stDiscountAmt = 0;
+    var milesEl=document.getElementById('st-fare-miles'),
+        amountEl=document.getElementById('st-fare-amount'),
+        fareBox=document.getElementById('st-fare-box');
+    if(milesEl) milesEl.textContent = 'Flat Rate';
+    if(amountEl) amountEl.textContent = '$'+price.toFixed(2);
+    if(fareBox){
+        fareBox.style.display='block';
+        var badge = fareBox.querySelector('.st-flat-rate-badge');
+        if(!badge){
+            badge = document.createElement('div');
+            badge.className = 'st-flat-rate-badge';
+            badge.style.cssText='font-size:.75rem;color:#f5c518;margin-top:4px;font-style:italic;';
+            fareBox.appendChild(badge);
+        }
+        badge.textContent = passengers >= 3
+            ? '\ud83d\udc65 ' + passengers + ' passengers: base $'+fr.price.toFixed(2)+' + 40% = $'+price.toFixed(2)
+            : '\u2605 Fixed rate: '+fr.name+(passengers>=3?' (3+ pax surcharge applied)':'');
+    }
+    stSyncTotals();
+}
+
+function stClearFlatRate(){
+    stActiveFlatRate = null;
+    var fareBox=document.getElementById('st-fare-box');
+    if(fareBox){ var badge=fareBox.querySelector('.st-flat-rate-badge'); if(badge) badge.remove(); }
+}
+
 
 function stClosePac(){
     document.querySelectorAll('.pac-container').forEach(function(el){el.style.display='none';});
@@ -67,7 +125,9 @@ function stInitMap(){
                 if(p&&p.geometry){
                     stDropoffLatLng=p.geometry.location;
                     stPlaceMarker('dropoff',stDropoffLatLng,p.formatted_address||p.name);
-                    stTryRoute();
+                    var fr=stMatchFlatRate(p.formatted_address||p.name||'');
+                    if(fr){ stApplyFlatRate(fr); }
+                    else { stClearFlatRate(); stTryRoute(); }
                 }
             });
             dropoffInput.addEventListener('focus',function(){stActiveField='dropoff';});
@@ -261,6 +321,12 @@ function stSubmitBooking(paymentId){
 document.addEventListener('DOMContentLoaded',function(){
     var calBtn=document.getElementById('st-show-calendar'),calWrap=document.getElementById('st-cal-wrap');
     if(calBtn&&calWrap){calBtn.addEventListener('click',function(e){e.preventDefault();calWrap.style.display=calWrap.style.display==='none'?'block':'none';calBtn.textContent=calWrap.style.display==='none'?'View open times below':'Hide calendar';});}
+
+    /* Re-apply flat rate when passenger count changes */
+    var paxSel=document.getElementById('st-passengers');
+    if(paxSel){paxSel.addEventListener('change',function(){
+        if(stActiveFlatRate) stApplyFlatRate(stActiveFlatRate);
+    });}
 
     var locBtn=document.getElementById('st-locate-me');
     if(locBtn){locBtn.addEventListener('click',function(){if(!navigator.geolocation){alert('Geolocation not supported.');return;}locBtn.textContent='\u231b';navigator.geolocation.getCurrentPosition(function(pos){locBtn.textContent='\ud83d\udccd';var ll=new google.maps.LatLng(pos.coords.latitude,pos.coords.longitude);stReverseGeocode(ll,'pickup');if(stMap) stMap.panTo(ll);},function(){locBtn.textContent='\ud83d\udccd';alert('Could not get location.');});});}
