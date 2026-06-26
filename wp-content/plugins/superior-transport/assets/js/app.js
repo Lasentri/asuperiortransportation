@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.1.1 */
+/* A Superior Transportation - app.js v3.1.2 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -113,6 +113,7 @@ function stInitMap(){
                     stTryRoute();
                     setTimeout(function(){
                         if(dropoffInput){dropoffInput.focus();stActiveField='dropoff';}
+                        stShowFlatRateHint();
                     },200);
                 }
             });
@@ -318,6 +319,201 @@ function stSubmitBooking(paymentId){
     }).catch(function(){if(errEl){errEl.textContent='Network error. Please call '+ST.phone;errEl.style.display='block';}});
 }
 
+
+/* -------------------------------------------------
+   FLAT RATE DESTINATION POPUP
+------------------------------------------------- */
+var stFlatRatePopupOpen = false;
+
+/* Houghton/Hancock/CMX pickup keywords */
+var ST_HH_KEYWORDS = ['houghton','hancock','cmx','airpark','keweenaw','portage'];
+
+function stPickupIsHoughtonArea(){
+    var val = (document.getElementById('st-pickup')||{}).value||'';
+    val = val.toLowerCase();
+    for(var i=0;i<ST_HH_KEYWORDS.length;i++){
+        if(val.indexOf(ST_HH_KEYWORDS[i])!==-1) return true;
+    }
+    return false;
+}
+
+function stShowFlatRateHint(){
+    var hint=document.getElementById('st-flatrate-hint');
+    if(hint) hint.style.display = stPickupIsHoughtonArea() ? 'block' : 'none';
+}
+
+function stOpenFlatRatePopup(){
+    if(stFlatRatePopupOpen) return;
+    stFlatRatePopupOpen = true;
+
+    /* Directions blocks - only north for now; placeholders for others */
+    var blocks = {
+        'north_bound': { label: '🧭 North Bound', subtitle: 'Houghton → Copper Harbor via US-41', color: '#1a73e8' },
+        'south_bound': { label: '🧭 South Bound', subtitle: 'Coming Soon', color: '#888', disabled: true },
+        'east_bound':  { label: '🧭 East Bound',  subtitle: 'Coming Soon', color: '#888', disabled: true },
+        'west_bound':  { label: '🧭 West Bound',  subtitle: 'Coming Soon', color: '#888', disabled: true },
+    };
+
+    var overlay = document.createElement('div');
+    overlay.id = 'st-fr-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
+
+    var modal = document.createElement('div');
+    modal.style.cssText = 'background:#0f2a0f;border:2px solid #c8a84b;border-radius:10px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.7);';
+
+    /* Header */
+    var header = '<div style="background:#1a3a1a;padding:18px 22px;border-bottom:1px solid rgba(200,168,75,.3);position:sticky;top:0;z-index:1;">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center">'
+        + '<div><div style="font-family:Oswald,sans-serif;font-size:1.15rem;color:#c8a84b;letter-spacing:.06em;">🗺️ FLAT RATE DESTINATIONS</div>'
+        + '<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:3px;">From Houghton · Hancock · CMX Airport</div></div>'
+        + '<button id="st-fr-close" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:1.4rem;cursor:pointer;line-height:1;padding:4px 8px;">✕</button>'
+        + '</div></div>';
+
+    /* Policy note */
+    var policy = '<div style="margin:14px 18px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.3);border-radius:6px;padding:10px 14px;font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.6;">'
+        + '📋 <strong style="color:#c8a84b">Pricing Policy:</strong> Rates shown are for <strong>1–2 passengers</strong>. '
+        + '3 or more passengers: flat rate + <strong>40% surcharge</strong> (calculated below).'
+        + '</div>';
+
+    /* Passenger selector */
+    var paxSel = '<div style="margin:0 18px 14px;display:flex;align-items:center;gap:10px;">'
+        + '<label style="font-size:.8rem;color:rgba(255,255,255,.6);font-family:Oswald,sans-serif;letter-spacing:.06em;">PASSENGERS:</label>'
+        + '<select id="st-fr-pax" style="background:#163016;border:1px solid rgba(200,168,75,.4);color:#fff;border-radius:4px;padding:6px 10px;font-size:.88rem;">'
+        + '<option value="1">1 passenger</option><option value="2">2 passengers</option>'
+        + '<option value="3">3 passengers</option><option value="4">4 passengers</option>'
+        + '<option value="5">5 passengers</option><option value="6">6 passengers</option>'
+        + '<option value="7">7 passengers</option><option value="8">8 passengers</option>'
+        + '</select>'
+        + '<span id="st-fr-pax-note" style="font-size:.75rem;color:#81c784;display:none;">+40% surcharge applied</span>'
+        + '</div>';
+
+    /* Direction tabs */
+    var tabs = '<div style="display:flex;gap:6px;margin:0 18px 14px;flex-wrap:wrap;">';
+    var firstActive = true;
+    Object.keys(blocks).forEach(function(bk){
+        var b = blocks[bk];
+        var isActive = (bk === 'north_bound');
+        tabs += '<button class="st-fr-tab" data-block="'+bk+'" '
+            + (b.disabled ? 'disabled ' : '')
+            + 'style="padding:7px 14px;border-radius:4px;border:1px solid '+(isActive?'#c8a84b':'rgba(255,255,255,.15)')+';'
+            + 'background:'+(isActive?'rgba(200,168,75,.15)':'rgba(255,255,255,.04)')+';'
+            + 'color:'+(isActive?'#c8a84b':(b.disabled?'#555':'rgba(255,255,255,.5)'))+';'
+            + 'font-size:.78rem;font-weight:600;cursor:'+(b.disabled?'default':'pointer')+';font-family:Oswald,sans-serif;letter-spacing:.04em;">'
+            + b.label + (b.disabled ? ' <span style="font-size:.65rem">(soon)</span>' : '')
+            + '</button>';
+    });
+    tabs += '</div>';
+
+    /* Destination list container */
+    var listWrap = '<div id="st-fr-list" style="padding:0 18px 18px;"></div>';
+
+    modal.innerHTML = header + policy + paxSel + tabs + listWrap;
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    /* Render destinations for a block */
+    function renderBlock(blockKey){
+        var listEl = document.getElementById('st-fr-list');
+        var pax = parseInt(document.getElementById('st-fr-pax').value||1);
+        var blockRates = stFlatRates.filter(function(r){ return r.block === blockKey; });
+        if(!blockRates.length){
+            listEl.innerHTML = '<div style="color:rgba(255,255,255,.4);text-align:center;padding:24px;font-style:italic;">No destinations configured yet.</div>';
+            return;
+        }
+        var html = '<div style="display:flex;flex-direction:column;gap:6px;">';
+        blockRates.forEach(function(fr){
+            var price = pax >= 3 ? fr.price * 1.40 : fr.price;
+            var paxLabel = pax >= 3
+                ? '<span style="font-size:.7rem;color:#ffb74d;margin-left:6px;">+40%</span>'
+                : '';
+            html += '<button class="st-fr-dest" data-name="'+fr.name+'" data-address="'+fr.address+'" data-price="'+fr.price+'"'
+                + ' style="display:flex;justify-content:space-between;align-items:center;'
+                + 'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:6px;'
+                + 'padding:11px 14px;cursor:pointer;text-align:left;transition:all .15s;width:100%;"'
+                + ' onmouseover="this.style.background=\'rgba(200,168,75,.12)\';this.style.borderColor=\'#c8a84b\';"'
+                + ' onmouseout="this.style.background=\'rgba(255,255,255,.04)\';this.style.borderColor=\'rgba(255,255,255,.1)\';">'
+                + '<span style="color:#fff;font-size:.88rem;font-weight:600;">'+fr.name+'</span>'
+                + '<span style="color:#f5c518;font-family:Oswald,sans-serif;font-size:1rem;font-weight:700;white-space:nowrap;">$'+price.toFixed(2)+paxLabel+'</span>'
+                + '</button>';
+        });
+        html += '</div>';
+        listEl.innerHTML = html;
+
+        /* Destination click */
+        listEl.querySelectorAll('.st-fr-dest').forEach(function(btn){
+            btn.addEventListener('click', function(){
+                var name = this.getAttribute('data-name');
+                var addr = this.getAttribute('data-address');
+                var basePrice = parseFloat(this.getAttribute('data-price'));
+                var paxNow = parseInt(document.getElementById('st-fr-pax').value||1);
+                var finalPrice = paxNow >= 3 ? basePrice * 1.40 : basePrice;
+
+                /* Set dropoff field */
+                var dropoffEl = document.getElementById('st-dropoff');
+                if(dropoffEl){ dropoffEl.value = addr || name; }
+
+                /* Set passengers on main form */
+                var mainPax = document.getElementById('st-passengers');
+                if(mainPax){ mainPax.value = paxNow; }
+
+                /* Apply fare */
+                var fr = {name:name, address:addr, price:basePrice};
+                stApplyFlatRate(fr);
+
+                /* Close popup */
+                stCloseFlatRatePopup();
+            });
+        });
+    }
+
+    /* Passenger change */
+    document.getElementById('st-fr-pax').addEventListener('change', function(){
+        var pax = parseInt(this.value||1);
+        var note = document.getElementById('st-fr-pax-note');
+        if(note) note.style.display = pax >= 3 ? 'inline' : 'none';
+        var activeTab = modal.querySelector('.st-fr-tab[data-active="1"]');
+        var block = activeTab ? activeTab.getAttribute('data-block') : 'north_bound';
+        renderBlock(block);
+    });
+
+    /* Tab switching */
+    modal.querySelectorAll('.st-fr-tab:not([disabled])').forEach(function(tab){
+        tab.addEventListener('click', function(){
+            modal.querySelectorAll('.st-fr-tab').forEach(function(t){
+                t.style.background='rgba(255,255,255,.04)';
+                t.style.borderColor='rgba(255,255,255,.15)';
+                t.style.color='rgba(255,255,255,.5)';
+                t.removeAttribute('data-active');
+            });
+            this.style.background='rgba(200,168,75,.15)';
+            this.style.borderColor='#c8a84b';
+            this.style.color='#c8a84b';
+            this.setAttribute('data-active','1');
+            renderBlock(this.getAttribute('data-block'));
+        });
+    });
+
+    /* Set north_bound as default active tab */
+    var defaultTab = modal.querySelector('.st-fr-tab[data-block="north_bound"]');
+    if(defaultTab){
+        defaultTab.style.background='rgba(200,168,75,.15)';
+        defaultTab.style.borderColor='#c8a84b';
+        defaultTab.style.color='#c8a84b';
+        defaultTab.setAttribute('data-active','1');
+    }
+    renderBlock('north_bound');
+
+    /* Close handlers */
+    document.getElementById('st-fr-close').addEventListener('click', stCloseFlatRatePopup);
+    overlay.addEventListener('click', function(e){ if(e.target===overlay) stCloseFlatRatePopup(); });
+}
+
+function stCloseFlatRatePopup(){
+    stFlatRatePopupOpen = false;
+    var el = document.getElementById('st-fr-overlay');
+    if(el) el.remove();
+}
+
 document.addEventListener('DOMContentLoaded',function(){
     var calBtn=document.getElementById('st-show-calendar'),calWrap=document.getElementById('st-cal-wrap');
     if(calBtn&&calWrap){calBtn.addEventListener('click',function(e){e.preventDefault();calWrap.style.display=calWrap.style.display==='none'?'block':'none';calBtn.textContent=calWrap.style.display==='none'?'View open times below':'Hide calendar';});}
@@ -327,6 +523,17 @@ document.addEventListener('DOMContentLoaded',function(){
     if(paxSel){paxSel.addEventListener('change',function(){
         if(stActiveFlatRate) stApplyFlatRate(stActiveFlatRate);
     });}
+
+    /* Flat rate link */
+    var frLink=document.getElementById('st-flatrate-link');
+    if(frLink){frLink.addEventListener('click',function(e){e.preventDefault();stOpenFlatRatePopup();});}
+
+    /* Show/hide flat rate hint based on pickup */
+    var pickupEl=document.getElementById('st-pickup');
+    if(pickupEl){
+        pickupEl.addEventListener('input', stShowFlatRateHint);
+        pickupEl.addEventListener('change', stShowFlatRateHint);
+    }
 
     var locBtn=document.getElementById('st-locate-me');
     if(locBtn){locBtn.addEventListener('click',function(){if(!navigator.geolocation){alert('Geolocation not supported.');return;}locBtn.textContent='\u231b';navigator.geolocation.getCurrentPosition(function(pos){locBtn.textContent='\ud83d\udccd';var ll=new google.maps.LatLng(pos.coords.latitude,pos.coords.longitude);stReverseGeocode(ll,'pickup');if(stMap) stMap.panTo(ll);},function(){locBtn.textContent='\ud83d\udccd';alert('Could not get location.');});});}
