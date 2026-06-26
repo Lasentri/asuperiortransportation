@@ -20,7 +20,6 @@ function stInitMap(){
             stPickupAC.addListener('place_changed',function(){var p=stPickupAC.getPlace();if(p.geometry){stPickupLatLng=p.geometry.location;stPlaceMarker('pickup',stPickupLatLng,p.formatted_address||p.name);stMap.panTo(stPickupLatLng);stTryRoute();setTimeout(function(){if(dropoffInput){dropoffInput.focus();stActiveField='dropoff';}},50);}});
             pickupInput.addEventListener('focus',function(){stActiveField='pickup';});
         }
-		
         if(dropoffInput){
             stDropoffAC=new google.maps.places.Autocomplete(dropoffInput,{componentRestrictions:{country:'us'},fields:['geometry','formatted_address','name']});
             stDropoffAC.addListener('place_changed',function(){var p=stDropoffAC.getPlace();if(p.geometry){stDropoffLatLng=p.geometry.location;stPlaceMarker('dropoff',stDropoffLatLng,p.formatted_address||p.name);stTryRoute();}});
@@ -123,7 +122,7 @@ async function stShowPaymentPopup(){
     async function initCard(){
         if(typeof Square==='undefined'){setTimeout(initCard,300);return;}
         try{
-            squarePayments=Square.payments(ST.sqAppId,{locationId:ST.sqLocationId});
+            squarePayments=await Square.payments(ST.sqAppId, ST.sqLocationId);
             squareCard=await squarePayments.card({style:{'.input-container':{borderColor:'#ccc',borderRadius:'4px'},'input':{color:'#000','font-size':'16px'}}});
             await squareCard.attach('#st-popup-card');
         }catch(e){

@@ -78,7 +78,8 @@ a:hover { color:var(--yel); text-decoration:underline; }
 .st-form-step h3 { font-size:1.2rem; color:var(--yel); margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,.15); letter-spacing:.04em; }
 .st-form-group { margin-bottom:14px; }
 .st-form-group label { display:block; font-size:.68rem; font-weight:700; letter-spacing:.1em; color:rgba(255,255,255,.6); margin-bottom:5px; font-family:'Oswald',sans-serif; }
-.st-form-group input,.st-form-group select,.st-form-group textarea { width:100%; padding:9px 12px; background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.15); border-radius:var(--r); font-size:.9rem; color:#fff; transition:border-color .15s; }
+.st-form-group input,.st-form-group select,.st-form-group textarea { width:100%; padding:9px 12px; background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.15); border-radius:var(--r); font-size:.9rem; color:#fff; transition:border-color .15s; color-scheme:dark; }
+.st-form-group input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(1); cursor:pointer; }
 .st-form-group input::placeholder { color:rgba(255,255,255,.3); }
 .st-form-group select option { background:#1a3a1a; color:#fff; }
 .st-form-group input:focus,.st-form-group select:focus,.st-form-group textarea:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 2px rgba(200,168,75,.2); }
@@ -202,3 +203,4 @@ a:hover { color:var(--yel); text-decoration:underline; }
   .st-why-grid{grid-template-columns:1fr 1fr;}
   .st-page-hero h1{font-size:1.6rem;}
 }
+
