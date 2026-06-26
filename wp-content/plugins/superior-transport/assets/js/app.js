@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.0.3 */
+/* A Superior Transportation - app.js v3.0.4 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -14,14 +14,14 @@ var squareCard=null,squarePayments=null;
     }
 })();
 
-/* Close any open PAC dropdown and blur active input */
+/* Close PAC dropdowns - only call this on step transitions, NOT during place_changed */
 function stClosePac(){
     document.querySelectorAll('.pac-container').forEach(function(el){el.style.display='none';});
-    if(document.activeElement&&document.activeElement.blur) document.activeElement.blur();
 }
 
 function showStep(n){
     stClosePac();
+    if(document.activeElement&&document.activeElement.blur) document.activeElement.blur();
     for(var i=1;i<=4;i++){
         var s=document.getElementById('step-'+i);
         if(s) s.style.display=i===n?'block':'none';
@@ -53,14 +53,13 @@ function stInitMap(){
                     stPlaceMarker('pickup',stPickupLatLng,p.formatted_address||p.name);
                     stMap.panTo(stPickupLatLng);
                     stTryRoute();
-                    /* Close PAC dropdown then focus dropoff */
-                    stClosePac();
+                    /* Let PAC close itself, then focus dropoff after a short delay */
                     setTimeout(function(){
                         if(dropoffInput){
                             dropoffInput.focus();
                             stActiveField='dropoff';
                         }
-                    },100);
+                    },200);
                 }
             });
             pickupInput.addEventListener('focus',function(){stActiveField='pickup';});
@@ -73,7 +72,6 @@ function stInitMap(){
                     stDropoffLatLng=p.geometry.location;
                     stPlaceMarker('dropoff',stDropoffLatLng,p.formatted_address||p.name);
                     stTryRoute();
-                    stClosePac();
                 }
             });
             dropoffInput.addEventListener('focus',function(){stActiveField='dropoff';});
@@ -249,17 +247,14 @@ document.addEventListener('DOMContentLoaded',function(){
     var couponBtn=document.getElementById('st-apply-coupon');
     if(couponBtn){couponBtn.addEventListener('click',function(){var code=(document.getElementById('st-coupon')||{}).value||'';var msg=document.getElementById('st-coupon-msg');if(!code.trim()){if(msg) msg.textContent='Enter a coupon code.';return;}var fd=new FormData();fd.append('action','st_check_coupon');fd.append('nonce',ST.nonce);fd.append('code',code);fd.append('fare',stCalcFare);fetch(ST.ajax,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){if(msg){msg.textContent=d.msg||'';msg.style.color=d.valid?'green':'red';}if(d.valid){stDiscountAmt=d.discount;stFinalFare=d.new_fare;stSyncTotals();}});});}
 
-    /* Step indicator click navigation - done steps are clickable to go back */
+    /* Step indicator click - allow going back to completed steps */
     for(var si=1;si<=4;si++){
         (function(stepNum){
             var ind=document.getElementById('step-ind-'+stepNum);
             if(ind){
                 ind.style.cursor='pointer';
                 ind.addEventListener('click',function(){
-                    /* Only allow clicking back to completed steps */
-                    if(this.classList.contains('done')){
-                        showStep(stepNum);
-                    }
+                    if(this.classList.contains('done')) showStep(stepNum);
                 });
             }
         })(si);
