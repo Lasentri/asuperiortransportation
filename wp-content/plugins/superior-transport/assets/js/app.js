@@ -20,6 +20,7 @@ function stInitMap(){
             stPickupAC.addListener('place_changed',function(){var p=stPickupAC.getPlace();if(p.geometry){stPickupLatLng=p.geometry.location;stPlaceMarker('pickup',stPickupLatLng,p.formatted_address||p.name);stMap.panTo(stPickupLatLng);stTryRoute();setTimeout(function(){if(dropoffInput){dropoffInput.focus();stActiveField='dropoff';}},50);}});
             pickupInput.addEventListener('focus',function(){stActiveField='pickup';});
         }
+		
         if(dropoffInput){
             stDropoffAC=new google.maps.places.Autocomplete(dropoffInput,{componentRestrictions:{country:'us'},fields:['geometry','formatted_address','name']});
             stDropoffAC.addListener('place_changed',function(){var p=stDropoffAC.getPlace();if(p.geometry){stDropoffLatLng=p.geometry.location;stPlaceMarker('dropoff',stDropoffLatLng,p.formatted_address||p.name);stTryRoute();}});
