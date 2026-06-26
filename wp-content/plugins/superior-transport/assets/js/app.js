@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.0.1 */
+/* A Superior Transportation - app.js v3.0.3 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -14,6 +14,26 @@ var squareCard=null,squarePayments=null;
     }
 })();
 
+/* Close any open PAC dropdown and blur active input */
+function stClosePac(){
+    document.querySelectorAll('.pac-container').forEach(function(el){el.style.display='none';});
+    if(document.activeElement&&document.activeElement.blur) document.activeElement.blur();
+}
+
+function showStep(n){
+    stClosePac();
+    for(var i=1;i<=4;i++){
+        var s=document.getElementById('step-'+i);
+        if(s) s.style.display=i===n?'block':'none';
+        var ind=document.getElementById('step-ind-'+i);
+        if(ind){
+            ind.classList.remove('active','done');
+            if(i===n) ind.classList.add('active');
+            else if(i<n) ind.classList.add('done');
+        }
+    }
+}
+
 function stInitMap(){
     var mapEl=document.getElementById('st-map');
     var placesMapEl=document.getElementById('st-places-map');
@@ -26,12 +46,36 @@ function stInitMap(){
         var dropoffInput=document.getElementById('st-dropoff');
         if(pickupInput){
             stPickupAC=new google.maps.places.Autocomplete(pickupInput,{componentRestrictions:{country:'us'},fields:['geometry','formatted_address','name']});
-            stPickupAC.addListener('place_changed',function(){var p=stPickupAC.getPlace();if(p.geometry){stPickupLatLng=p.geometry.location;stPlaceMarker('pickup',stPickupLatLng,p.formatted_address||p.name);stMap.panTo(stPickupLatLng);stTryRoute();setTimeout(function(){if(dropoffInput){dropoffInput.focus();stActiveField='dropoff';}},50);}});
+            stPickupAC.addListener('place_changed',function(){
+                var p=stPickupAC.getPlace();
+                if(p&&p.geometry){
+                    stPickupLatLng=p.geometry.location;
+                    stPlaceMarker('pickup',stPickupLatLng,p.formatted_address||p.name);
+                    stMap.panTo(stPickupLatLng);
+                    stTryRoute();
+                    /* Close PAC dropdown then focus dropoff */
+                    stClosePac();
+                    setTimeout(function(){
+                        if(dropoffInput){
+                            dropoffInput.focus();
+                            stActiveField='dropoff';
+                        }
+                    },100);
+                }
+            });
             pickupInput.addEventListener('focus',function(){stActiveField='pickup';});
         }
         if(dropoffInput){
             stDropoffAC=new google.maps.places.Autocomplete(dropoffInput,{componentRestrictions:{country:'us'},fields:['geometry','formatted_address','name']});
-            stDropoffAC.addListener('place_changed',function(){var p=stDropoffAC.getPlace();if(p.geometry){stDropoffLatLng=p.geometry.location;stPlaceMarker('dropoff',stDropoffLatLng,p.formatted_address||p.name);stTryRoute();}});
+            stDropoffAC.addListener('place_changed',function(){
+                var p=stDropoffAC.getPlace();
+                if(p&&p.geometry){
+                    stDropoffLatLng=p.geometry.location;
+                    stPlaceMarker('dropoff',stDropoffLatLng,p.formatted_address||p.name);
+                    stTryRoute();
+                    stClosePac();
+                }
+            });
             dropoffInput.addEventListener('focus',function(){stActiveField='dropoff';});
         }
     }
@@ -205,8 +249,21 @@ document.addEventListener('DOMContentLoaded',function(){
     var couponBtn=document.getElementById('st-apply-coupon');
     if(couponBtn){couponBtn.addEventListener('click',function(){var code=(document.getElementById('st-coupon')||{}).value||'';var msg=document.getElementById('st-coupon-msg');if(!code.trim()){if(msg) msg.textContent='Enter a coupon code.';return;}var fd=new FormData();fd.append('action','st_check_coupon');fd.append('nonce',ST.nonce);fd.append('code',code);fd.append('fare',stCalcFare);fetch(ST.ajax,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){if(msg){msg.textContent=d.msg||'';msg.style.color=d.valid?'green':'red';}if(d.valid){stDiscountAmt=d.discount;stFinalFare=d.new_fare;stSyncTotals();}});});}
 
-    function stClosePac(){document.querySelectorAll('.pac-container').forEach(function(el){el.style.display='none';});document.activeElement&&document.activeElement.blur();}
-    function showStep(n){stClosePac();for(var i=1;i<=4;i++){var s=document.getElementById('step-'+i);if(s) s.style.display=i===n?'block':'none';var ind=document.getElementById('step-ind-'+i);if(ind){ind.classList.remove('active','done');if(i===n) ind.classList.add('active');else if(i<n) ind.classList.add('done');}}}
+    /* Step indicator click navigation - done steps are clickable to go back */
+    for(var si=1;si<=4;si++){
+        (function(stepNum){
+            var ind=document.getElementById('step-ind-'+stepNum);
+            if(ind){
+                ind.style.cursor='pointer';
+                ind.addEventListener('click',function(){
+                    /* Only allow clicking back to completed steps */
+                    if(this.classList.contains('done')){
+                        showStep(stepNum);
+                    }
+                });
+            }
+        })(si);
+    }
 
     var next1=document.getElementById('st-next-1');
     if(next1){next1.addEventListener('click',function(){var date=(document.getElementById('st-date')||{}).value||'',time=(document.getElementById('st-time')||{}).value||'',pickup=(document.getElementById('st-pickup')||{}).value||'',dropoff=(document.getElementById('st-dropoff')||{}).value||'',errEl=document.getElementById('st-form-error-1');if(!date||!time||!pickup||!dropoff){if(errEl){errEl.textContent='Please fill in date, time, pickup and dropoff.';errEl.style.display='block';}return;}if(!stCalcFare){if(errEl){errEl.textContent='Please wait while we calculate your route...';errEl.style.display='block';}var gc=new google.maps.Geocoder();gc.geocode({address:pickup+', Michigan, USA'},function(r1,s1){if(s1==='OK'&&r1[0]){stPickupLatLng=r1[0].geometry.location;stPlaceMarker('pickup',stPickupLatLng,pickup);gc.geocode({address:dropoff+', Michigan, USA'},function(r2,s2){if(s2==='OK'&&r2[0]){stDropoffLatLng=r2[0].geometry.location;stPlaceMarker('dropoff',stDropoffLatLng,dropoff);stTryRoute();setTimeout(function(){if(errEl) errEl.style.display='none';showStep(2);},1500);}});}});return;}if(errEl) errEl.style.display='none';showStep(2);});}
