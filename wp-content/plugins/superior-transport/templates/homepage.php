@@ -88,6 +88,12 @@ include ST_DIR . 'templates/inc-header.php';
             <a href="#" id="st-flatrate-link" style="font-size:.78rem;color:#c8a84b;font-weight:600;text-decoration:none;">🗺️ View Flat Rate Destinations &rarr;</a>
             <span style="font-size:.72rem;color:rgba(255,255,255,.4);margin-left:6px;">(Available from Houghton · Hancock · CMX)</span>
           </div>
+          <div id="st-exact-address-wrap" style="display:none;margin:-4px 0 12px;">
+            <label style="display:block;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-bottom:5px;font-family:Oswald,sans-serif;">EXACT DROP-OFF ADDRESS <span style="color:#f5c518">*</span></label>
+            <input type="text" id="st-dropoff-exact" placeholder="Enter exact street address at destination (e.g. 123 Tamarack St, Laurium)" autocomplete="off" spellcheck="false"
+              style="width:100%;padding:9px 12px;background:rgba(0,0,0,.3);border:1px solid #c8a84b;border-radius:6px;font-size:.9rem;color:#fff;color-scheme:dark;">
+            <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:4px;">Your driver will take you to this exact address within the flat rate zone.</div>
+          </div>
           <?php if($s['show_passengers']==='1'): ?>
           <div class="st-form-group">
             <label>PASSENGERS <?php if($s['require_passengers']==='1') echo '<span class="req">*</span>';?></label>
