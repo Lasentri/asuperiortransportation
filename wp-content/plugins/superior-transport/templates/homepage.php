@@ -84,6 +84,10 @@ include ST_DIR . 'templates/inc-header.php';
             <label>DROP-OFF LOCATION <?php if($s['require_dropoff']==='1') echo '<span class="req">*</span>';?></label>
             <input type="text" id="st-dropoff" name="dropoff" placeholder="Enter drop-off address" autocomplete="off" spellcheck="false" <?php if($s['require_dropoff']==='1') echo 'required';?>>
           </div>
+          <div id="st-flatrate-hint" style="display:none;margin:-6px 0 10px;">
+            <a href="#" id="st-flatrate-link" style="font-size:.78rem;color:#c8a84b;font-weight:600;text-decoration:none;">🗺️ View Flat Rate Destinations &rarr;</a>
+            <span style="font-size:.72rem;color:rgba(255,255,255,.4);margin-left:6px;">(Available from Houghton · Hancock · CMX)</span>
+          </div>
           <?php if($s['show_passengers']==='1'): ?>
           <div class="st-form-group">
             <label>PASSENGERS <?php if($s['require_passengers']==='1') echo '<span class="req">*</span>';?></label>
