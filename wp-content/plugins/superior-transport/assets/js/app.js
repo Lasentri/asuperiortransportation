@@ -1,11 +1,11 @@
-/* A Superior Transportation - app.js v3.0.4 */
+/* A Superior Transportation - app.js v3.0.5 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
 var stCalcFare=0,stCalcMiles=0,stDiscountAmt=0,stFinalFare=0;
 var squareCard=null,squarePayments=null;
 
-/* Load Square SDK immediately so it is ready before user hits Pay */
+/* Load Square SDK immediately */
 (function(){
     if(window.ST&&ST.sqAppId){
         var sq=document.createElement('script');
@@ -14,7 +14,6 @@ var squareCard=null,squarePayments=null;
     }
 })();
 
-/* Close PAC dropdowns - only call this on step transitions, NOT during place_changed */
 function stClosePac(){
     document.querySelectorAll('.pac-container').forEach(function(el){el.style.display='none';});
 }
@@ -53,12 +52,8 @@ function stInitMap(){
                     stPlaceMarker('pickup',stPickupLatLng,p.formatted_address||p.name);
                     stMap.panTo(stPickupLatLng);
                     stTryRoute();
-                    /* Let PAC close itself, then focus dropoff after a short delay */
                     setTimeout(function(){
-                        if(dropoffInput){
-                            dropoffInput.focus();
-                            stActiveField='dropoff';
-                        }
+                        if(dropoffInput){dropoffInput.focus();stActiveField='dropoff';}
                     },200);
                 }
             });
@@ -154,22 +149,48 @@ async function stShowPaymentPopup(){
     overlay.id='st-pay-overlay';
     overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
     var modal=document.createElement('div');
-    modal.style.cssText='background:#122812;border:2px solid #c8a84b;border-radius:10px;padding:28px;width:100%;max-width:400px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.6);';
+    modal.style.cssText='background:#122812;border:2px solid #c8a84b;border-radius:10px;padding:28px;width:100%;max-width:420px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.6);';
+
+    /* Try Square first; if it fails after 4 seconds show the fallback message */
+    var squareLoaded = (typeof Square !== 'undefined');
+
     modal.innerHTML='<h3 style="font-family:Oswald,sans-serif;color:#c8a84b;margin:0 0 6px;font-size:1.2rem;letter-spacing:.06em">CARD PAYMENT</h3>'
         +'<div style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:16px">Total due: <strong style="color:#f5c518;font-size:1.15rem" id="st-popup-total">$0.00</strong></div>'
         +'<div id="st-popup-card" style="background:#fff;border-radius:6px;padding:10px;min-height:50px;margin-bottom:14px"></div>'
+        +'<div id="st-popup-fallback" style="display:none;background:rgba(200,168,75,.12);border:1px solid #c8a84b;border-radius:8px;padding:18px;margin-bottom:14px;text-align:center;">'
+        +'<div style="font-size:1.8rem;margin-bottom:8px">\ud83d\udcc5</div>'
+        +'<div style="color:#f5c518;font-family:Oswald,sans-serif;font-size:1rem;letter-spacing:.05em;margin-bottom:8px">BOOKING CONFIRMED</div>'
+        +'<div style="color:rgba(255,255,255,.8);font-size:.88rem;line-height:1.6;">Your ride is reserved. Our dispatcher will contact you shortly with a secure payment link via text or email.</div>'
+        +'<div style="margin-top:12px;color:rgba(255,255,255,.5);font-size:.78rem;">Questions? Call <a href="tel:9063700094" style="color:#c8a84b;font-weight:700;">906-370-4094</a></div>'
+        +'</div>'
         +'<div id="st-popup-error" style="color:#ef9a9a;font-size:.82rem;margin-bottom:10px;display:none;background:rgba(198,40,40,.2);padding:8px 12px;border-radius:4px;"></div>'
-        +'<div style="display:flex;gap:10px;margin-top:4px">'
+        +'<div id="st-popup-btns" style="display:flex;gap:10px;margin-top:4px">'
         +'<button id="st-popup-cancel" style="flex:1;padding:11px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);border-radius:6px;cursor:pointer;font-size:.88rem">Cancel</button>'
         +'<button id="st-popup-pay" style="flex:2;padding:11px;background:#c8a84b;border:none;color:#0f2a0f;border-radius:6px;cursor:pointer;font-weight:700;font-size:.95rem;font-family:Oswald,sans-serif;letter-spacing:.05em">PAY NOW</button>'
         +'</div>';
+
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
     var tot=document.getElementById('st-popup-total');
     if(tot) tot.textContent='$'+stFinalFare.toFixed(2);
+
     function closePopup(){if(squareCard){try{squareCard.destroy();}catch(e){} squareCard=null;} squarePayments=null; overlay.remove();}
+    function showFallback(){
+        /* Hide card form, hide pay button, show dispatcher message */
+        var cardEl=document.getElementById('st-popup-card');
+        var fallEl=document.getElementById('st-popup-fallback');
+        var btnsEl=document.getElementById('st-popup-btns');
+        var payBtn=document.getElementById('st-popup-pay');
+        if(cardEl) cardEl.style.display='none';
+        if(fallEl) fallEl.style.display='block';
+        if(payBtn) payBtn.style.display='none';
+        /* Submit the booking as card-pending so driver gets the notification */
+        stSubmitBooking('CARD_PENDING');
+    }
+
     overlay.addEventListener('click',function(e){if(e.target===overlay) closePopup();});
     document.getElementById('st-popup-cancel').addEventListener('click',closePopup);
+
     async function initCard(){
         if(typeof Square==='undefined'){setTimeout(initCard,300);return;}
         try{
@@ -177,14 +198,21 @@ async function stShowPaymentPopup(){
             squareCard=await squarePayments.card({style:{'.input-container':{borderColor:'#ccc',borderRadius:'4px'},'input':{color:'#000','font-size':'16px'}}});
             await squareCard.attach('#st-popup-card');
         }catch(e){
-            var err=document.getElementById('st-popup-error');
-            if(err){err.textContent='Card form failed to load. Call 906-370-4094 to pay.';err.style.display='block';}
             console.error('Square initCard error:',e);
+            showFallback();
         }
     }
-    initCard();
+
+    /* Give Square 4 seconds to load; if it hasn't, show fallback */
+    var squareTimeout=setTimeout(function(){
+        if(!squareCard) showFallback();
+    },4000);
+
+    initCard().then(function(){clearTimeout(squareTimeout);}).catch(function(){clearTimeout(squareTimeout);showFallback();});
+
     document.getElementById('st-popup-pay').addEventListener('click',async function(){
         var btn=this,errEl=document.getElementById('st-popup-error');
+        if(!squareCard){showFallback();return;}
         btn.disabled=true;btn.textContent='Processing...';
         try{
             var result=await squareCard.tokenize();
@@ -205,8 +233,8 @@ async function stShowPaymentPopup(){
             closePopup();
             stSubmitBooking(cj.data.payment_id||'');
         }catch(e){
-            if(errEl){errEl.textContent='Error processing payment. Call '+ST.phone;errEl.style.display='block';}
-            btn.disabled=false;btn.textContent='PAY NOW';
+            console.error('Square pay error:',e);
+            showFallback();
         }
     });
 }
@@ -230,8 +258,16 @@ function stSubmitBooking(paymentId){
     fd.append('coupon',(document.getElementById('st-coupon')||{}).value||'');
     fd.append('payment_id',paymentId);
     fetch(ST.ajax,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
-        if(d.success){var msg=document.getElementById('st-success-msg');if(msg)msg.textContent=d.data.message||'Booking confirmed.';showStep(4);}
-        else{if(errEl){errEl.textContent=(d.data&&d.data.message)||'Booking failed. Please call us.';errEl.style.display='block';}}
+        if(d.success){
+            /* If card pending, leave popup open showing dispatcher message; else go to step 4 */
+            if(paymentId!=='CARD_PENDING'){
+                var msg=document.getElementById('st-success-msg');
+                if(msg) msg.textContent=d.data.message||'Booking confirmed.';
+                showStep(4);
+            }
+        } else {
+            if(errEl){errEl.textContent=(d.data&&d.data.message)||'Booking failed. Please call us.';errEl.style.display='block';}
+        }
     }).catch(function(){if(errEl){errEl.textContent='Network error. Please call '+ST.phone;errEl.style.display='block';}});
 }
 
@@ -247,7 +283,6 @@ document.addEventListener('DOMContentLoaded',function(){
     var couponBtn=document.getElementById('st-apply-coupon');
     if(couponBtn){couponBtn.addEventListener('click',function(){var code=(document.getElementById('st-coupon')||{}).value||'';var msg=document.getElementById('st-coupon-msg');if(!code.trim()){if(msg) msg.textContent='Enter a coupon code.';return;}var fd=new FormData();fd.append('action','st_check_coupon');fd.append('nonce',ST.nonce);fd.append('code',code);fd.append('fare',stCalcFare);fetch(ST.ajax,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){if(msg){msg.textContent=d.msg||'';msg.style.color=d.valid?'green':'red';}if(d.valid){stDiscountAmt=d.discount;stFinalFare=d.new_fare;stSyncTotals();}});});}
 
-    /* Step indicator click - allow going back to completed steps */
     for(var si=1;si<=4;si++){
         (function(stepNum){
             var ind=document.getElementById('step-ind-'+stepNum);
