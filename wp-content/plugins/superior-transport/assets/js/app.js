@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.0.6 */
+/* A Superior Transportation - app.js v3.1.0 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -18,10 +18,11 @@ function stClosePac(){
     document.querySelectorAll('.pac-container').forEach(function(el){el.style.display='none';});
 }
 
+/* 3-step flow: 1=Ride Details, 2=Contact+Book, 3=Done */
 function showStep(n){
     stClosePac();
     if(document.activeElement&&document.activeElement.blur) document.activeElement.blur();
-    for(var i=1;i<=4;i++){
+    for(var i=1;i<=3;i++){
         var s=document.getElementById('step-'+i);
         if(s) s.style.display=i===n?'block':'none';
         var ind=document.getElementById('step-ind-'+i);
@@ -135,11 +136,7 @@ function stUpdateFare(miles){
 }
 
 function stSyncTotals(){
-    var subEl=document.getElementById('st-total-sub'),discEl=document.getElementById('st-total-discount'),finalEl=document.getElementById('st-total-final'),discRow=document.getElementById('st-discount-row'),sumMile=document.getElementById('st-sum-miles'),sumFare=document.getElementById('st-sum-fare');
-    if(subEl) subEl.textContent='$'+stCalcFare.toFixed(2);
-    if(finalEl) finalEl.textContent='$'+stFinalFare.toFixed(2);
-    if(discRow) discRow.style.display=stDiscountAmt>0?'flex':'none';
-    if(discEl) discEl.textContent='-$'+stDiscountAmt.toFixed(2);
+    var sumMile=document.getElementById('st-sum-miles'),sumFare=document.getElementById('st-sum-fare');
     if(sumMile) sumMile.textContent=stCalcMiles.toFixed(1)+' mi';
     if(sumFare) sumFare.textContent='$'+stFinalFare.toFixed(2);
 }
@@ -150,9 +147,6 @@ async function stShowPaymentPopup(){
     overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
     var modal=document.createElement('div');
     modal.style.cssText='background:#122812;border:2px solid #c8a84b;border-radius:10px;padding:28px;width:100%;max-width:420px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.6);';
-
-    /* Try Square first; if it fails after 4 seconds show the fallback message */
-    var squareLoaded = (typeof Square !== 'undefined');
 
     modal.innerHTML='<h3 style="font-family:Oswald,sans-serif;color:#c8a84b;margin:0 0 6px;font-size:1.2rem;letter-spacing:.06em">CARD PAYMENT</h3>'
         +'<div style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:16px">Total due: <strong style="color:#f5c518;font-size:1.15rem" id="st-popup-total">$0.00</strong></div>'
@@ -175,21 +169,19 @@ async function stShowPaymentPopup(){
     if(tot) tot.textContent='$'+stFinalFare.toFixed(2);
 
     function closePopup(){if(squareCard){try{squareCard.destroy();}catch(e){} squareCard=null;} squarePayments=null; overlay.remove();}
+
     function showFallback(){
-        /* Hide card form, hide pay button, show dispatcher message */
         var cardEl=document.getElementById('st-popup-card');
         var fallEl=document.getElementById('st-popup-fallback');
-        var btnsEl=document.getElementById('st-popup-btns');
         var payBtn=document.getElementById('st-popup-pay');
         if(cardEl) cardEl.style.display='none';
         if(fallEl) fallEl.style.display='block';
         if(payBtn) payBtn.style.display='none';
-        /* Submit the booking as card-pending so driver gets the notification */
         stSubmitBooking('CARD_PENDING');
     }
 
     overlay.addEventListener('click',function(e){if(e.target===overlay) closePopup();});
-    document.getElementById('st-popup-cancel').addEventListener('click',closePopup);
+    document.getElementById('st-popup-cancel').addEventListener('click',function(){closePopup();showStep(3);});
 
     async function initCard(){
         if(typeof Square==='undefined'){setTimeout(initCard,300);return;}
@@ -203,11 +195,7 @@ async function stShowPaymentPopup(){
         }
     }
 
-    /* Give Square 4 seconds to load; if it hasn't, show fallback */
-    var squareTimeout=setTimeout(function(){
-        if(!squareCard) showFallback();
-    },4000);
-
+    var squareTimeout=setTimeout(function(){if(!squareCard) showFallback();},4000);
     initCard().then(function(){clearTimeout(squareTimeout);}).catch(function(){clearTimeout(squareTimeout);showFallback();});
 
     document.getElementById('st-popup-pay').addEventListener('click',async function(){
@@ -241,7 +229,7 @@ async function stShowPaymentPopup(){
 function stInitSquare(){}
 
 function stSubmitBooking(paymentId){
-    var errEl=document.getElementById('st-form-error-3');
+    var errEl=document.getElementById('st-form-error-2');
     var fd=new FormData();
     fd.append('action','st_book_ride');fd.append('nonce',ST.nonce);
     fd.append('name',(document.getElementById('st-name')||{}).value||'');
@@ -259,11 +247,10 @@ function stSubmitBooking(paymentId){
     fd.append('payment_id',paymentId);
     fetch(ST.ajax,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
         if(d.success){
-            /* If card pending, leave popup open showing dispatcher message; else go to step 4 */
             if(paymentId!=='CARD_PENDING'){
                 var msg=document.getElementById('st-success-msg');
                 if(msg) msg.textContent=d.data.message||'Booking confirmed.';
-                showStep(4);
+                showStep(3);
             }
         } else {
             if(errEl){errEl.textContent=(d.data&&d.data.message)||'Booking failed. Please call us.';errEl.style.display='block';}
@@ -275,15 +262,14 @@ document.addEventListener('DOMContentLoaded',function(){
     var calBtn=document.getElementById('st-show-calendar'),calWrap=document.getElementById('st-cal-wrap');
     if(calBtn&&calWrap){calBtn.addEventListener('click',function(e){e.preventDefault();calWrap.style.display=calWrap.style.display==='none'?'block':'none';calBtn.textContent=calWrap.style.display==='none'?'View open times below':'Hide calendar';});}
 
-    document.querySelectorAll('input[name="payment_method"]').forEach(function(r){r.addEventListener('change',function(){var cw=document.getElementById('st-card-wrap');if(cw) cw.style.display=this.value==='card'?'block':'none';});});
-
     var locBtn=document.getElementById('st-locate-me');
     if(locBtn){locBtn.addEventListener('click',function(){if(!navigator.geolocation){alert('Geolocation not supported.');return;}locBtn.textContent='\u231b';navigator.geolocation.getCurrentPosition(function(pos){locBtn.textContent='\ud83d\udccd';var ll=new google.maps.LatLng(pos.coords.latitude,pos.coords.longitude);stReverseGeocode(ll,'pickup');if(stMap) stMap.panTo(ll);},function(){locBtn.textContent='\ud83d\udccd';alert('Could not get location.');});});}
 
     var couponBtn=document.getElementById('st-apply-coupon');
     if(couponBtn){couponBtn.addEventListener('click',function(){var code=(document.getElementById('st-coupon')||{}).value||'';var msg=document.getElementById('st-coupon-msg');if(!code.trim()){if(msg) msg.textContent='Enter a coupon code.';return;}var fd=new FormData();fd.append('action','st_check_coupon');fd.append('nonce',ST.nonce);fd.append('code',code);fd.append('fare',stCalcFare);fetch(ST.ajax,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){if(msg){msg.textContent=d.msg||'';msg.style.color=d.valid?'green':'red';}if(d.valid){stDiscountAmt=d.discount;stFinalFare=d.new_fare;stSyncTotals();}});});}
 
-    for(var si=1;si<=4;si++){
+    /* Step indicator click - back navigation */
+    for(var si=1;si<=3;si++){
         (function(stepNum){
             var ind=document.getElementById('step-ind-'+stepNum);
             if(ind){
@@ -296,19 +282,51 @@ document.addEventListener('DOMContentLoaded',function(){
     }
 
     var next1=document.getElementById('st-next-1');
-    if(next1){next1.addEventListener('click',function(){var date=(document.getElementById('st-date')||{}).value||'',time=(document.getElementById('st-time')||{}).value||'',pickup=(document.getElementById('st-pickup')||{}).value||'',dropoff=(document.getElementById('st-dropoff')||{}).value||'',errEl=document.getElementById('st-form-error-1');if(!date||!time||!pickup||!dropoff){if(errEl){errEl.textContent='Please fill in date, time, pickup and dropoff.';errEl.style.display='block';}return;}if(!stCalcFare){if(errEl){errEl.textContent='Please wait while we calculate your route...';errEl.style.display='block';}var gc=new google.maps.Geocoder();gc.geocode({address:pickup+', Michigan, USA'},function(r1,s1){if(s1==='OK'&&r1[0]){stPickupLatLng=r1[0].geometry.location;stPlaceMarker('pickup',stPickupLatLng,pickup);gc.geocode({address:dropoff+', Michigan, USA'},function(r2,s2){if(s2==='OK'&&r2[0]){stDropoffLatLng=r2[0].geometry.location;stPlaceMarker('dropoff',stDropoffLatLng,dropoff);stTryRoute();setTimeout(function(){if(errEl) errEl.style.display='none';showStep(2);},1500);}});}});return;}if(errEl) errEl.style.display='none';showStep(2);});}
+    if(next1){next1.addEventListener('click',function(){
+        var date=(document.getElementById('st-date')||{}).value||'',
+            time=(document.getElementById('st-time')||{}).value||'',
+            pickup=(document.getElementById('st-pickup')||{}).value||'',
+            dropoff=(document.getElementById('st-dropoff')||{}).value||'',
+            errEl=document.getElementById('st-form-error-1');
+        if(!date||!time||!pickup||!dropoff){if(errEl){errEl.textContent='Please fill in date, time, pickup and dropoff.';errEl.style.display='block';}return;}
+        if(!stCalcFare){
+            if(errEl){errEl.textContent='Please wait while we calculate your route...';errEl.style.display='block';}
+            var gc=new google.maps.Geocoder();
+            gc.geocode({address:pickup+', Michigan, USA'},function(r1,s1){
+                if(s1==='OK'&&r1[0]){
+                    stPickupLatLng=r1[0].geometry.location;
+                    stPlaceMarker('pickup',stPickupLatLng,pickup);
+                    gc.geocode({address:dropoff+', Michigan, USA'},function(r2,s2){
+                        if(s2==='OK'&&r2[0]){
+                            stDropoffLatLng=r2[0].geometry.location;
+                            stPlaceMarker('dropoff',stDropoffLatLng,dropoff);
+                            stTryRoute();
+                            setTimeout(function(){if(errEl) errEl.style.display='none';showStep(2);},1500);
+                        }
+                    });
+                }
+            });
+            return;
+        }
+        if(errEl) errEl.style.display='none';
+        showStep(2);
+    });}
 
-    var next2=document.getElementById('st-next-2');
-    if(next2){next2.addEventListener('click',function(){var name=(document.getElementById('st-name')||{}).value||'',phone=(document.getElementById('st-phone')||{}).value||'',errEl=document.getElementById('st-form-error-2');if(!name.trim()||!phone.trim()){if(errEl){errEl.textContent='Please enter your name and phone number.';errEl.style.display='block';}return;}if(errEl) errEl.style.display='none';stSyncTotals();showStep(3);});}
-
-    var back2=document.getElementById('st-back-2'); if(back2) back2.addEventListener('click',function(){showStep(1);});
-    var back3=document.getElementById('st-back-3'); if(back3) back3.addEventListener('click',function(){showStep(2);});
+    var back2=document.getElementById('st-back-2');
+    if(back2) back2.addEventListener('click',function(){showStep(1);});
 
     var confirmBtn=document.getElementById('st-confirm-btn');
     if(confirmBtn){confirmBtn.addEventListener('click',function(){
-        var payMethod=(document.querySelector('input[name="payment_method"]:checked')||{}).value||'cash';
-        if(payMethod==='card'){stShowPaymentPopup();}
-        else{stSubmitBooking('');}
+        var name=(document.getElementById('st-name')||{}).value||'',
+            phone=(document.getElementById('st-phone')||{}).value||'',
+            errEl=document.getElementById('st-form-error-2');
+        if(!name.trim()||!phone.trim()){
+            if(errEl){errEl.textContent='Please enter your name and phone number.';errEl.style.display='block';}
+            return;
+        }
+        if(errEl) errEl.style.display='none';
+        stSyncTotals();
+        stShowPaymentPopup();
     });}
 
     document.querySelectorAll('.st-place-book').forEach(function(btn){btn.addEventListener('click',function(){var place=btn.getAttribute('data-place');if(place) sessionStorage.setItem('st_dropoff_preset',place);});});
