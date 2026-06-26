@@ -17,7 +17,7 @@ function stInitMap(){
         var dropoffInput=document.getElementById('st-dropoff');
         if(pickupInput){
             stPickupAC=new google.maps.places.Autocomplete(pickupInput,{componentRestrictions:{country:'us'},fields:['geometry','formatted_address','name']});
-            stPickupAC.addListener('place_changed',function(){var p=stPickupAC.getPlace();if(p.geometry){stPickupLatLng=p.geometry.location;stPlaceMarker('pickup',stPickupLatLng,p.formatted_address||p.name);stMap.panTo(stPickupLatLng);stTryRoute();}});
+            stPickupAC.addListener('place_changed',function(){var p=stPickupAC.getPlace();if(p.geometry){stPickupLatLng=p.geometry.location;stPlaceMarker('pickup',stPickupLatLng,p.formatted_address||p.name);stMap.panTo(stPickupLatLng);stTryRoute();setTimeout(function(){if(dropoffInput){dropoffInput.focus();stActiveField='dropoff';}},50);}});
             pickupInput.addEventListener('focus',function(){stActiveField='pickup';});
         }
         if(dropoffInput){
@@ -237,3 +237,4 @@ function stDrawGasChart(labels,prices){
     var ctx=document.getElementById('st-gas-chart');if(!ctx) return;
     new Chart(ctx,{type:'line',data:{labels:labels,datasets:[{label:'Gas Price ($/gal)',data:prices,borderColor:'#2e7d32',backgroundColor:'rgba(46,125,50,0.1)',borderWidth:2,pointRadius:4,pointBackgroundColor:'#2e7d32',tension:0.3,fill:true}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '$'+c.parsed.y.toFixed(3);}}}},scales:{y:{ticks:{callback:function(v){return '$'+v.toFixed(2);}}}}}});
 }
+
