@@ -59,7 +59,7 @@ function st_get_flat_rates() {
             ['name'=>'Toivola',                              'address'=>'Toivola, MI 49965',                          'price'=>99.06,  'active'=>1],
             ['name'=>'Greenland',                            'address'=>'Greenland, MI 49929',                        'price'=>153.22, 'active'=>1],
             ['name'=>'Mass City',                            'address'=>'Mass City, MI 49948',                        'price'=>162.50, 'active'=>1],
-            ['name'=>"Krupp's Resort",                       'address'=>'Krupps Resort, Bergland, MI 49910',          'price'=>205.91, 'active'=>1],
+            ['name'=>"Krupp's Resort",                       'address'=>'32170 Emily Lake Rd, Toivola, MI 49965',          'price'=>205.91, 'active'=>1],
             ['name'=>'Bergland',                             'address'=>'Bergland, MI 49910',                         'price'=>281.22, 'active'=>1],
             ['name'=>'Lake Gogebic State Park',              'address'=>'Lake Gogebic State Park, Marenisco, MI',     'price'=>296.80, 'active'=>1],
             ['name'=>'Ewen',                                 'address'=>'Ewen, MI 49925',                             'price'=>252.65, 'active'=>1],
