@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.1.9 */
+/* A Superior Transportation - app.js v3.2.0 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -93,47 +93,59 @@ function stClosePac(){
 
 function stBookMidnightFlight(e){
     if(e) e.preventDefault();
+
     /* Scroll to booking form */
     var booking = document.getElementById('booking');
     if(booking) booking.scrollIntoView({behavior:'smooth', block:'start'});
-    /* Set date to today */
-    var dateEl = document.getElementById('st-date');
-    if(dateEl){
-        var today = new Date();
-        var mm = String(today.getMonth()+1).padStart(2,'0');
-        var dd = String(today.getDate()).padStart(2,'0');
-        var yyyy = today.getFullYear();
-        dateEl.value = yyyy+'-'+mm+'-'+dd;
-    }
-    /* Set time to 23:59 */
-    var timeEl = document.getElementById('st-time');
-    if(timeEl) timeEl.value = '23:59';
 
-    /* Auto-select CMX Airport as default destination */
     setTimeout(function(){
-        var cmx = {
-            name: 'Houghton County Memorial Airport (CMX)',
-            address: '23810 Airpark Blvd, Calumet, MI 49913',
-            price: 10.00
-        };
-        /* Fill dropoff field with CMX */
-        var dropoffEl = document.getElementById('st-dropoff');
-        if(dropoffEl) dropoffEl.value = cmx.address;
-        /* Apply flat rate */
-        stApplyFlatRate(cmx);
-        /* Show exact address field for their terminal/gate details */
-        var exactWrap = document.getElementById('st-exact-address-wrap');
-        if(exactWrap) exactWrap.style.display = 'block';
-        var exactEl = document.getElementById('st-dropoff-exact');
-        if(exactEl){
-            exactEl.placeholder = 'e.g. Terminal entrance, flight number, or specific drop point at CMX';
-            exactEl.focus();
+        /* Set date to today */
+        var dateEl = document.getElementById('st-date');
+        if(dateEl){
+            var today = new Date();
+            var mm = String(today.getMonth()+1).padStart(2,'0');
+            var dd = String(today.getDate()).padStart(2,'0');
+            var yyyy = today.getFullYear();
+            dateEl.value = yyyy+'-'+mm+'-'+dd;
         }
-        /* Also open flat rate popup so they can change destination if not CMX */
+
+        /* Set time - find closest available option to 11:59 PM */
+        var timeEl = document.getElementById('st-time');
+        if(timeEl){
+            /* Try 23:45 first (last 15-min slot before midnight) */
+            var options = timeEl.options;
+            var bestVal = '';
+            for(var i=0;i<options.length;i++){
+                if(options[i].value >= '23:00') bestVal = options[i].value;
+            }
+            if(bestVal) timeEl.value = bestVal;
+        }
+
+        /* Set PICKUP to CMX Airport */
+        var pickupEl = document.getElementById('st-pickup');
+        if(pickupEl){
+            pickupEl.value = 'Houghton County Memorial Airport (CMX), 23810 Airpark Blvd, Calumet, MI 49913';
+            stShowFlatRateHint();
+        }
+
+        /* Clear any previous dropoff/fare state */
+        var dropoffEl = document.getElementById('st-dropoff');
+        if(dropoffEl) dropoffEl.value = '';
+        stClearFlatRate();
+        stCalcFare = 0; stFinalFare = 0; stCalcMiles = 0;
+        var fareBox = document.getElementById('st-fare-box');
+        if(fareBox) fareBox.style.display = 'none';
+
+        /* Hide exact address wrap until they pick a destination */
+        var exactWrap = document.getElementById('st-exact-address-wrap');
+        if(exactWrap) exactWrap.style.display = 'none';
+
+        /* Open flat rate popup for destination selection */
         setTimeout(function(){
             stOpenFlatRatePopup();
-        }, 400);
-    }, 600);
+        }, 300);
+
+    }, 500);
 }
 
 function showStep(n){
