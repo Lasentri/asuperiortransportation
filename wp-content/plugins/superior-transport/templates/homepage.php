@@ -13,24 +13,19 @@ include ST_DIR . 'templates/inc-header.php';
   <div class="st-hero-overlay"></div>
   <div class="st-hero-content">
 
-    <div class="st-hero-logo">
-      <div class="st-hero-logo-box">
-        <div class="st-hero-logo-icon"><img src="https://asuperiortransportation.com/wp-content/uploads/2026/06/logo3.png" width=80 align=left></div>
-        <div class="st-hero-logo-text">
-          <span class="st-hero-logo-name">A Superior Transportation</span>
-          <span class="st-hero-logo-tag">&amp; Logistics · Est. 2017</span>
-        </div>
-      </div>
+    <div class="st-hero-logo" style="text-align:center;margin-bottom:18px;">
+      <img src="https://asuperiortransportation.com/wp-content/uploads/2026/06/logo3.png" style="width:120px;height:120px;object-fit:contain;display:block;margin:0 auto 10px;">
+      <div style="font-family:Oswald,sans-serif;font-size:1.1rem;color:#c8a84b;letter-spacing:.06em;font-weight:700;">A Superior Transportation &amp; Logistics</div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.5);letter-spacing:.1em;">Est. 2017 · Houghton · Hancock · U.P.</div>
     </div>
 
     <h1><font color=#FFFfff>Your Ride</font>. Your Schedule. <font color=#ffffff>Your UP.</font></h1>
     <p>Professional transportation across Houghton, Hancock, Calumet &amp; the entire Western U.P. Corridor</p>
     <div class="st-hero-badges">
       <span class="st-badge">✅ Metered &amp; Flat Rate</span>
-      <span class="st-badge">📍 Live GPS</span>
       <span class="st-badge">💳 Square &amp; Cash</span>
       <span class="st-badge">📞 Phone Confirmed</span>
-      <span class="st-badge">🌙 Non-Midnight Daily</span>
+      <a href="tel:9063704094" class="st-badge" style="text-decoration:none;color:#fff;cursor:pointer;">✈️ Midnight Flights — Special Order</a>
     </div>
     <div class="st-hero-status <?php echo $is_open ? 'open' : 'closed';?>">
       <?php echo $is_open ? '🟢 Open Now' : '🔴 Currently Closed';?> &nbsp;·&nbsp; <?php echo esc_html("$open – $close");?>
@@ -90,9 +85,12 @@ include ST_DIR . 'templates/inc-header.php';
           </div>
           <div id="st-exact-address-wrap" style="display:none;margin:-4px 0 12px;">
             <label style="display:block;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-bottom:5px;font-family:Oswald,sans-serif;">EXACT DROP-OFF ADDRESS <span style="color:#f5c518">*</span></label>
-            <input type="text" id="st-dropoff-exact" placeholder="Enter exact street address at destination (e.g. 123 Tamarack St, Laurium)" autocomplete="off" spellcheck="false"
-              style="width:100%;padding:9px 12px;background:rgba(0,0,0,.3);border:1px solid #c8a84b;border-radius:6px;font-size:.9rem;color:#fff;color-scheme:dark;">
-            <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:4px;">Your driver will take you to this exact address within the flat rate zone.</div>
+            <div class="st-input-wrap">
+              <input type="text" id="st-dropoff-exact" placeholder="Enter exact street address or click map 📍" autocomplete="off" spellcheck="false"
+                style="width:100%;padding:9px 42px 9px 12px;background:rgba(0,0,0,.3);border:1px solid #c8a84b;border-radius:6px;font-size:.9rem;color:#fff;color-scheme:dark;">
+              <button type="button" id="st-locate-exact" class="st-locate-btn" title="Use map click for exact address">📍</button>
+            </div>
+            <div style="font-size:.72rem;color:rgba(255,255,255,.4);margin-top:4px;">Type the address, click the 📍 button, or click anywhere on the map to set the exact drop-off point.</div>
           </div>
           <?php if($s['show_passengers']==='1'): ?>
           <div class="st-form-group">
