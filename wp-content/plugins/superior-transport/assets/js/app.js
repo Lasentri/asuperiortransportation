@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.2.4 */
+/* A Superior Transportation - app.js v3.2.5 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -572,8 +572,14 @@ function stOpenFlatRatePopup(){
                 var mainPax = document.getElementById('st-passengers');
                 if(mainPax){ mainPax.value = paxNow; }
 
-                /* Apply fare */
+                /* Apply fare - pass already-calculated final price so stApplyFlatRate
+                   doesn't recalculate based on the main form's passenger field (which may not
+                   have updated yet). We override price with finalPrice and force passengers. */
                 var fr = {name:name, address:addr, price:basePrice};
+                /* Temporarily set st-passengers so stApplyFlatRate reads the right count */
+                var mainPaxEl = document.getElementById('st-passengers');
+                var prevPax = mainPaxEl ? mainPaxEl.value : '1';
+                if(mainPaxEl) mainPaxEl.value = paxNow;
                 stApplyFlatRate(fr);
 
                 /* Clear exact address for fresh entry */
