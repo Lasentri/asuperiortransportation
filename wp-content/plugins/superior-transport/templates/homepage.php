@@ -14,7 +14,7 @@ include ST_DIR . 'templates/inc-header.php';
   <div class="st-hero-content">
 
     <div class="st-hero-logo" style="text-align:center;margin-bottom:18px;">
-      <img src="https://asuperiortransportation.com/wp-content/uploads/2026/06/logo3.png" style="width:120px;height:120px;object-fit:contain;display:block;margin:0 auto 10px;">
+      <img src="https://asuperiortransportation.com/wp-content/uploads/2026/06/logo3.png" style="width:168px;height:168px;object-fit:contain;display:block;margin:0 auto 10px;">
       <div style="font-family:Oswald,sans-serif;font-size:1.1rem;color:#c8a84b;letter-spacing:.06em;font-weight:700;">A Superior Transportation &amp; Logistics</div>
       <div style="font-size:.72rem;color:rgba(255,255,255,.5);letter-spacing:.1em;">Est. 2017 · Houghton · Hancock · U.P.</div>
     </div>
@@ -25,7 +25,7 @@ include ST_DIR . 'templates/inc-header.php';
       <span class="st-badge">✅ Metered &amp; Flat Rate</span>
       <span class="st-badge">💳 Square &amp; Cash</span>
       <span class="st-badge">📞 Phone Confirmed</span>
-      <a href="tel:9063704094" class="st-badge" style="text-decoration:none;color:#fff;cursor:pointer;">✈️ Midnight Flights — Special Order</a>
+      <a href="#midnight" class="st-badge" style="text-decoration:none;color:#fff;cursor:pointer;">✈️ Midnight Flights — Special Order</a>
     </div>
     <div class="st-hero-status <?php echo $is_open ? 'open' : 'closed';?>">
       <?php echo $is_open ? '🟢 Open Now' : '🔴 Currently Closed';?> &nbsp;·&nbsp; <?php echo esc_html("$open – $close");?>
@@ -197,7 +197,100 @@ include ST_DIR . 'templates/inc-header.php';
     <div class="st-why-grid">
       <div class="st-why-card"><div class="st-why-icon">📍</div><strong>Live GPS Routes</strong><p>Real-time navigation and route optimization.</p></div>
       <div class="st-why-card"><div class="st-why-icon">💰</div><strong>Transparent Pricing</strong><p>$4.20/mile .</p></div>
-      <div class="st-why-card"><div class="st-why-icon">🕐</div><strong>7 Days a Week</strong><p>6:00 AM to 11:59 PM daily or by arrangement. <br>(Call for Midnight Flights)</p></div>
+      <div class="st-why-card"><div class="st-why-icon">🕐</div><strong>7 Days a Week</strong><p>6:00 AM to 11:59 PM daily. Late night? <a href="#midnight" style="color:#c8a84b;font-weight:700;">Book a Midnight Flight ✈️</a></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- MIDNIGHT FLIGHTS -->
+<section class="st-why" id="midnight" style="background:#0a0f1a;border-top:2px solid #c8a84b;">
+  <div class="st-container">
+    <h2 style="color:#f5c518;">✈️ Midnight Flights — Special Order</h2>
+    <p class="st-why-sub" style="color:rgba(255,255,255,.6);">Need a ride after 11:59 PM for a flight or emergency? We've got you covered. Special order required.</p>
+
+    <div style="background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:22px 24px;max-width:600px;margin:0 auto 28px;">
+      <div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:1.8;">
+        <div>🕐 <strong style="color:#c8a84b;">Available:</strong> 12:00 AM – 5:59 AM by special order only</div>
+        <div>✈️ <strong style="color:#c8a84b;">Primary use:</strong> CMX Airport (Houghton County Memorial Airport) flights</div>
+        <div>📞 <strong style="color:#c8a84b;">How to book:</strong> Call or submit the form below — minimum 12 hours advance notice recommended</div>
+        <div>💳 <strong style="color:#c8a84b;">Payment:</strong> Required at time of booking</div>
+      </div>
+    </div>
+
+    <div style="background:#0f1f0f;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:24px;max-width:600px;margin:0 auto;" id="midnight-form">
+      <h3 style="font-family:Oswald,sans-serif;color:#c8a84b;margin:0 0 16px;font-size:1.1rem;letter-spacing:.06em;">REQUEST A MIDNIGHT FLIGHT RIDE</h3>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-bottom:5px;font-family:Oswald,sans-serif;">FLIGHT DATE & TIME</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <input type="date" id="mf-date" min="<?php echo date('Y-m-d');?>" style="padding:9px 12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;font-size:.9rem;color-scheme:dark;width:100%;">
+          <select id="mf-time" style="padding:9px 12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;font-size:.9rem;width:100%;">
+            <option value="">Select time</option>
+            <?php
+            $midnight_times = [];
+            for($h=0;$h<6;$h++){
+                for($m=0;$m<60;$m+=15){
+                    $val=sprintf('%02d:%02d',$h,$m);
+                    $disp=date('g:i A',strtotime($val));
+                    echo "<option value='{$val}'>{$disp}</option>";
+                }
+            }
+            // Also add 11:59 PM slot
+            echo "<option value='23:59'>11:59 PM (last regular run)</option>";
+            ?>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-bottom:5px;font-family:Oswald,sans-serif;">DESTINATION</label>
+        <select id="mf-destination" style="width:100%;padding:9px 12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;font-size:.9rem;">
+          <option value="">Select destination</option>
+          <optgroup label="✈️ Airport">
+            <option value="CMX - Houghton County Memorial Airport, 23810 Airpark Blvd, Calumet, MI 49913">CMX — Houghton County Memorial Airport</option>
+          </optgroup>
+          <optgroup label="🏨 Local Area">
+            <option value="Houghton (Downtown)">Houghton (Downtown)</option>
+            <option value="Hancock (Downtown)">Hancock (Downtown)</option>
+            <option value="Calumet (Downtown)">Calumet (Downtown)</option>
+            <option value="Laurium">Laurium</option>
+          </optgroup>
+          <optgroup label="🧭 North Bound (US-41)">
+            <option value="Mohawk, MI">Mohawk</option>
+            <option value="Ahmeek, MI">Ahmeek</option>
+            <option value="Allouez, MI">Allouez</option>
+            <option value="Gay, MI">Gay / Eagle River Junction</option>
+            <option value="Eagle River, MI">Eagle River (County Courthouse)</option>
+            <option value="Phoenix, MI">Phoenix</option>
+            <option value="Copper Harbor, MI">Copper Harbor</option>
+            <option value="Fort Wilkins State Park, Copper Harbor, MI">Fort Wilkins State Park</option>
+          </optgroup>
+          <optgroup label="📝 Other">
+            <option value="other">Other — I will specify below</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div style="margin-bottom:12px;" id="mf-other-wrap" style="display:none;">
+        <label style="display:block;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-bottom:5px;font-family:Oswald,sans-serif;">SPECIFY DESTINATION</label>
+        <input type="text" id="mf-other" placeholder="Enter your destination" style="width:100%;padding:9px 12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;font-size:.9rem;">
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-bottom:5px;font-family:Oswald,sans-serif;">YOUR NAME & PHONE</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <input type="text" id="mf-name" placeholder="Full name" style="padding:9px 12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;font-size:.9rem;width:100%;">
+          <input type="tel" id="mf-phone" placeholder="906-555-0000" style="padding:9px 12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;font-size:.9rem;width:100%;">
+        </div>
+      </div>
+
+      <div id="mf-error" style="display:none;background:rgba(198,40,40,.2);border:1px solid rgba(198,40,40,.4);border-radius:4px;padding:9px 13px;font-size:.82rem;color:#ef9a9a;margin-bottom:10px;"></div>
+      <div id="mf-success" style="display:none;background:rgba(46,125,50,.2);border:1px solid #388e3c;border-radius:4px;padding:12px 16px;font-size:.88rem;color:#a5d6a7;margin-bottom:10px;"></div>
+
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button type="button" id="mf-submit" style="flex:2;padding:12px;background:#c8a84b;border:none;color:#0f2a0f;border-radius:6px;cursor:pointer;font-weight:700;font-size:.95rem;font-family:Oswald,sans-serif;letter-spacing:.05em;">✈️ REQUEST MIDNIGHT FLIGHT</button>
+        <a href="tel:9063704094" style="flex:1;padding:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);border-radius:6px;text-align:center;font-size:.85rem;text-decoration:none;">📞 Call Instead</a>
+      </div>
     </div>
   </div>
 </section>
