@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.1.5 */
+/* A Superior Transportation - app.js v3.1.6 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -695,6 +695,78 @@ document.addEventListener('DOMContentLoaded',function(){
     if(ham&&links){ham.addEventListener('click',function(){var open=links.classList.toggle('st-nav-open');ham.setAttribute('aria-expanded',open?'true':'false');});document.addEventListener('click',function(e){if(!ham.contains(e.target)&&!links.contains(e.target)){links.classList.remove('st-nav-open');ham.setAttribute('aria-expanded','false');}});}
 
     var nav=document.getElementById('st-nav');if(nav){window.addEventListener('scroll',function(){nav.classList.toggle('st-nav-scrolled',window.scrollY>10);},{passive:true});}
+});
+
+
+/* -------------------------------------------------
+   MIDNIGHT FLIGHTS FORM
+------------------------------------------------- */
+document.addEventListener('DOMContentLoaded',function(){
+    var mfDest=document.getElementById('mf-destination');
+    var mfOtherWrap=document.getElementById('mf-other-wrap');
+    if(mfDest&&mfOtherWrap){
+        mfDest.addEventListener('change',function(){
+            mfOtherWrap.style.display=this.value==='other'?'block':'none';
+        });
+    }
+
+    var mfSubmit=document.getElementById('mf-submit');
+    if(mfSubmit){mfSubmit.addEventListener('click',function(){
+        var date=(document.getElementById('mf-date')||{}).value||'';
+        var time=(document.getElementById('mf-time')||{}).value||'';
+        var dest=(document.getElementById('mf-destination')||{}).value||'';
+        var other=(document.getElementById('mf-other')||{}).value||'';
+        var name=(document.getElementById('mf-name')||{}).value||'';
+        var phone=(document.getElementById('mf-phone')||{}).value||'';
+        var errEl=document.getElementById('mf-error');
+        var sucEl=document.getElementById('mf-success');
+
+        if(!date||!time||!dest||!name.trim()||!phone.trim()){
+            if(errEl){errEl.textContent='Please fill in all fields.';errEl.style.display='block';}
+            return;
+        }
+        var finalDest = dest==='other' ? other : dest;
+        if(!finalDest.trim()){
+            if(errEl){errEl.textContent='Please specify your destination.';errEl.style.display='block';}
+            return;
+        }
+        if(errEl) errEl.style.display='none';
+        mfSubmit.disabled=true; mfSubmit.textContent='Sending...';
+
+        var fd=new FormData();
+        fd.append('action','st_book_ride');
+        fd.append('nonce',ST.nonce);
+        fd.append('name',name);
+        fd.append('phone',phone);
+        fd.append('email','');
+        fd.append('pickup','Houghton/Hancock Area (Midnight Flight)');
+        fd.append('dropoff',finalDest);
+        fd.append('date',date);
+        fd.append('time',time);
+        fd.append('passengers','1');
+        fd.append('notes','MIDNIGHT FLIGHT SPECIAL ORDER');
+        fd.append('distance','0');
+        fd.append('fare','0');
+        fd.append('coupon','');
+        fd.append('payment_id','MIDNIGHT_PENDING');
+
+        fetch(ST.ajax,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
+            mfSubmit.disabled=false; mfSubmit.textContent='?? REQUEST MIDNIGHT FLIGHT';
+            if(d.success){
+                if(sucEl){sucEl.innerHTML='<strong>Request received!</strong> We will call '+phone+' to confirm your midnight flight to <strong>'+finalDest+'</strong>. Payment required at confirmation.';sucEl.style.display='block';}
+                document.getElementById('mf-date').value='';
+                document.getElementById('mf-time').value='';
+                document.getElementById('mf-destination').value='';
+                document.getElementById('mf-name').value='';
+                document.getElementById('mf-phone').value='';
+            } else {
+                if(errEl){errEl.textContent='Submission failed. Please call 906-370-4094 directly.';errEl.style.display='block';}
+            }
+        }).catch(function(){
+            mfSubmit.disabled=false; mfSubmit.textContent='?? REQUEST MIDNIGHT FLIGHT';
+            if(errEl){errEl.textContent='Network error. Please call 906-370-4094.';errEl.style.display='block';}
+        });
+    });}
 });
 
 function stInitGasChart(){
