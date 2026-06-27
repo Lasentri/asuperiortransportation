@@ -35,7 +35,7 @@ function st_get_flat_rates() {
             ['name'=>'Laurium',                              'address'=>'Laurium, MI',                  'price'=>30.00,  'active'=>1],
             ['name'=>'Calumet (Downtown)',                   'address'=>'Calumet, MI 49913',            'price'=>30.00,  'active'=>1],
             ['name'=>'Calumet Visitor Center / Agassiz Park','address'=>'Calumet, MI 49913',            'price'=>30.00,  'active'=>1],
-            ['name'=>'Swedetown Trails / Recreation Area',   'address'=>'Swedetown Rd, Calumet, MI',    'price'=>31.00,  'active'=>1],
+            ['name'=>'Swedetown Trails / Recreation Area',   'address'=>'Swedetown Recreational Area, Calumet, MI 49913',    'price'=>31.00,  'active'=>1],
             ['name'=>'Mohawk',                               'address'=>'Mohawk, MI',                   'price'=>55.00,  'active'=>1],
             ['name'=>'Ahmeek',                               'address'=>'Ahmeek, MI',                   'price'=>65.00,  'active'=>1],
             ['name'=>'Allouez',                              'address'=>'Allouez, MI',                  'price'=>75.00,  'active'=>1],
