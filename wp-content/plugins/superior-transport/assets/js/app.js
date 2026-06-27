@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.2.5 */
+/* A Superior Transportation - app.js v3.2.6 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -572,15 +572,30 @@ function stOpenFlatRatePopup(){
                 var mainPax = document.getElementById('st-passengers');
                 if(mainPax){ mainPax.value = paxNow; }
 
-                /* Apply fare - pass already-calculated final price so stApplyFlatRate
-                   doesn't recalculate based on the main form's passenger field (which may not
-                   have updated yet). We override price with finalPrice and force passengers. */
-                var fr = {name:name, address:addr, price:basePrice};
-                /* Temporarily set st-passengers so stApplyFlatRate reads the right count */
+                /* Apply fare using pre-calculated finalPrice directly */
+                var fr = {name:name, address:addr, price:finalPrice};
+                /* Set passenger count on main form */
                 var mainPaxEl = document.getElementById('st-passengers');
-                var prevPax = mainPaxEl ? mainPaxEl.value : '1';
                 if(mainPaxEl) mainPaxEl.value = paxNow;
-                stApplyFlatRate(fr);
+                /* Apply with price already set to the pax-adjusted amount */
+                stActiveFlatRate = {name:name, address:addr, price:basePrice};
+                stCalcFare = finalPrice; stFinalFare = finalPrice; stDiscountAmt = 0;
+                var milesEl=document.getElementById('st-fare-miles');
+                var amountEl=document.getElementById('st-fare-amount');
+                var fareBox=document.getElementById('st-fare-box');
+                if(milesEl) milesEl.textContent='Flat Rate';
+                if(amountEl) amountEl.textContent='$'+finalPrice.toFixed(2);
+                if(fareBox){
+                    fareBox.style.display='block';
+                    var badge=fareBox.querySelector('.st-flat-rate-badge');
+                    if(!badge){badge=document.createElement('div');badge.className='st-flat-rate-badge';badge.style.cssText='font-size:.75rem;color:#f5c518;margin-top:4px;font-style:italic;';fareBox.appendChild(badge);}
+                    badge.textContent = paxNow>=3
+                        ? paxNow+' passengers: base $'+basePrice.toFixed(2)+' + 40% = $'+finalPrice.toFixed(2)
+                        : 'Fixed rate: '+name;
+                }
+                stSyncTotals();
+                var exactWrap=document.getElementById('st-exact-address-wrap');
+                if(exactWrap){exactWrap.style.display='block';var ei=document.getElementById('st-dropoff-exact');if(ei){ei.value='';setTimeout(function(){ei.focus();},100);}}
 
                 /* Clear exact address for fresh entry */
                 var exactEl=document.getElementById('st-dropoff-exact');
