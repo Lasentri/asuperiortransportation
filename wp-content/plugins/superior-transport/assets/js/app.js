@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.1.4 */
+/* A Superior Transportation - app.js v3.1.5 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -112,7 +112,15 @@ function stInitMap(){
         var center={lat:47.1211,lng:-88.5694};
         stMap=new google.maps.Map(mapEl,{center:center,zoom:13,gestureHandling:'greedy',mapTypeControl:false,streetViewControl:false,fullscreenControl:true,zoomControl:true,styles:[{featureType:'poi',elementType:'labels',stylers:[{visibility:'off'}]}]});
         stRouteRenderer=new google.maps.DirectionsRenderer({map:stMap,suppressMarkers:true,polylineOptions:{strokeColor:'#2e7d32',strokeWeight:5,strokeOpacity:0.8}});
-        stMap.addListener('click',function(e){stClosePac();stReverseGeocode(e.latLng);});
+        stMap.addListener('click',function(e){
+            stClosePac();
+            var exactWrap=document.getElementById('st-exact-address-wrap');
+            if(exactWrap && exactWrap.style.display !== 'none'){
+                stReverseGeocodeExact(e.latLng);
+            } else {
+                stReverseGeocode(e.latLng);
+            }
+        });
 
         /* Auto-detect location on load for pickup */
         if(navigator.geolocation && pickupInput && !pickupInput.value){
@@ -195,6 +203,20 @@ function stReverseGeocode(latLng,forceField){
             if(field==='pickup'){stPickupLatLng=latLng;stPlaceMarker('pickup',latLng,addr);}
             else{stDropoffLatLng=latLng;stPlaceMarker('dropoff',latLng,addr);}
             stTryRoute();
+        }
+    });
+}
+
+function stReverseGeocodeExact(latLng){
+    var gc=new google.maps.Geocoder();
+    gc.geocode({location:latLng},function(results,status){
+        if(status==='OK'&&results[0]){
+            var exactEl=document.getElementById('st-dropoff-exact');
+            if(exactEl){
+                exactEl.value=results[0].formatted_address;
+                exactEl.style.borderColor='#81c784';
+                setTimeout(function(){exactEl.style.borderColor='#c8a84b';},1000);
+            }
         }
     });
 }
@@ -384,10 +406,10 @@ function stOpenFlatRatePopup(){
 
     /* Directions blocks - only north for now; placeholders for others */
     var blocks = {
-        'north_bound': { label: '🧭 North Bound', subtitle: 'Houghton → Copper Harbor via US-41', color: '#1a73e8' },
-        'south_bound': { label: '🧭 South Bound', subtitle: 'Coming Soon', color: '#888', disabled: true },
-        'east_bound':  { label: '🧭 East Bound',  subtitle: 'Coming Soon', color: '#888', disabled: true },
-        'west_bound':  { label: '🧭 West Bound',  subtitle: 'Coming Soon', color: '#888', disabled: true },
+        'north_bound': { label: '? North Bound', subtitle: 'Houghton ? Copper Harbor via US-41', color: '#1a73e8' },
+        'south_bound': { label: '? South Bound', subtitle: 'Coming Soon', color: '#888', disabled: true },
+        'east_bound':  { label: '? East Bound',  subtitle: 'Coming Soon', color: '#888', disabled: true },
+        'west_bound':  { label: '? West Bound',  subtitle: 'Coming Soon', color: '#888', disabled: true },
     };
 
     var overlay = document.createElement('div');
@@ -400,14 +422,14 @@ function stOpenFlatRatePopup(){
     /* Header */
     var header = '<div style="background:#1a3a1a;padding:18px 22px;border-bottom:1px solid rgba(200,168,75,.3);position:sticky;top:0;z-index:1;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center">'
-        + '<div><div style="font-family:Oswald,sans-serif;font-size:1.15rem;color:#c8a84b;letter-spacing:.06em;">🗺️ FLAT RATE DESTINATIONS</div>'
-        + '<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:3px;">From Houghton · Hancock · CMX Airport</div></div>'
-        + '<button id="st-fr-close" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:1.4rem;cursor:pointer;line-height:1;padding:4px 8px;">✕</button>'
+        + '<div><div style="font-family:Oswald,sans-serif;font-size:1.15rem;color:#c8a84b;letter-spacing:.06em;">?? FLAT RATE DESTINATIONS</div>'
+        + '<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:3px;">From Houghton � Hancock � CMX Airport</div></div>'
+        + '<button id="st-fr-close" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:1.4rem;cursor:pointer;line-height:1;padding:4px 8px;">?</button>'
         + '</div></div>';
 
     /* Policy note */
     var policy = '<div style="margin:14px 18px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.3);border-radius:6px;padding:10px 14px;font-size:.78rem;color:rgba(255,255,255,.7);line-height:1.6;">'
-        + '📋 <strong style="color:#c8a84b">Pricing Policy:</strong> Rates shown are for <strong>1–2 passengers</strong>. '
+        + '? <strong style="color:#c8a84b">Pricing Policy:</strong> Rates shown are for <strong>1?2 passengers</strong>. '
         + '3 or more passengers: flat rate + <strong>40% surcharge</strong> (calculated below).'
         + '</div>';
 
@@ -585,6 +607,19 @@ document.addEventListener('DOMContentLoaded',function(){
         pickupEl.addEventListener('input', stShowFlatRateHint);
         pickupEl.addEventListener('change', stShowFlatRateHint);
     }
+
+    /* Exact address locate button */
+    var locExactBtn=document.getElementById('st-locate-exact');
+    if(locExactBtn){locExactBtn.addEventListener('click',function(){
+        if(!navigator.geolocation){alert('Geolocation not supported.');return;}
+        locExactBtn.textContent='?';
+        navigator.geolocation.getCurrentPosition(function(pos){
+            locExactBtn.textContent='?';
+            var ll=new google.maps.LatLng(pos.coords.latitude,pos.coords.longitude);
+            stReverseGeocodeExact(ll);
+            if(stMap) stMap.panTo(ll);
+        },function(){locExactBtn.textContent='?';alert('Could not get location.');});
+    });}
 
     var locBtn=document.getElementById('st-locate-me');
     if(locBtn){locBtn.addEventListener('click',function(){if(!navigator.geolocation){alert('Geolocation not supported.');return;}locBtn.textContent='\u231b';navigator.geolocation.getCurrentPosition(function(pos){locBtn.textContent='\ud83d\udccd';var ll=new google.maps.LatLng(pos.coords.latitude,pos.coords.longitude);stReverseGeocode(ll,'pickup');if(stMap) stMap.panTo(ll);},function(){locBtn.textContent='\ud83d\udccd';alert('Could not get location.');});});}
