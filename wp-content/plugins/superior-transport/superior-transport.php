@@ -8,6 +8,10 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+/* Force WordPress mail to send from asuperiortransportation.com domain */
+add_filter( 'wp_mail_from',      function() { return 'noreply@asuperiortransportation.com'; } );
+add_filter( 'wp_mail_from_name', function() { return 'A Superior Transportation'; } );
+
 define( 'ST_VERSION', '3.0.6' );
 define( 'ST_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'ST_URL',     plugin_dir_url( __FILE__ ) );
