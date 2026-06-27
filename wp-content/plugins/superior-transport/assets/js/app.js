@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.1.3 */
+/* A Superior Transportation - app.js v3.1.4 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -82,7 +82,11 @@ function stClearFlatRate(){
 
 
 function stClosePac(){
-    document.querySelectorAll('.pac-container').forEach(function(el){el.style.display='none';});
+    document.querySelectorAll('.pac-container').forEach(function(el){
+        el.style.display='none';
+        el.style.visibility='hidden';
+        el.style.opacity='0';
+    });
 }
 
 /* 3-step flow: 1=Ride Details, 2=Contact+Book, 3=Done */
@@ -108,7 +112,18 @@ function stInitMap(){
         var center={lat:47.1211,lng:-88.5694};
         stMap=new google.maps.Map(mapEl,{center:center,zoom:13,gestureHandling:'greedy',mapTypeControl:false,streetViewControl:false,fullscreenControl:true,zoomControl:true,styles:[{featureType:'poi',elementType:'labels',stylers:[{visibility:'off'}]}]});
         stRouteRenderer=new google.maps.DirectionsRenderer({map:stMap,suppressMarkers:true,polylineOptions:{strokeColor:'#2e7d32',strokeWeight:5,strokeOpacity:0.8}});
-        stMap.addListener('click',function(e){stReverseGeocode(e.latLng);});
+        stMap.addListener('click',function(e){stClosePac();stReverseGeocode(e.latLng);});
+
+        /* Auto-detect location on load for pickup */
+        if(navigator.geolocation && pickupInput && !pickupInput.value){
+            navigator.geolocation.getCurrentPosition(function(pos){
+                var ll=new google.maps.LatLng(pos.coords.latitude,pos.coords.longitude);
+                stReverseGeocode(ll,'pickup');
+                stMap.panTo(ll);
+            }, function(){
+                /* Silently fail - user can type or use the pin button */
+            }, {timeout:5000, maximumAge:60000});
+        }
         var pickupInput=document.getElementById('st-pickup');
         var dropoffInput=document.getElementById('st-dropoff');
         if(pickupInput){
@@ -120,10 +135,14 @@ function stInitMap(){
                     stPlaceMarker('pickup',stPickupLatLng,p.formatted_address||p.name);
                     stMap.panTo(stPickupLatLng);
                     stTryRoute();
+                    /* Force close PAC immediately */
+                    if(pickupInput) pickupInput.blur();
+                    stClosePac();
                     setTimeout(function(){
+                        stClosePac();
                         if(dropoffInput){dropoffInput.focus();stActiveField='dropoff';}
                         stShowFlatRateHint();
-                    },200);
+                    },150);
                 }
             });
             pickupInput.addEventListener('focus',function(){stActiveField='pickup';});
@@ -135,6 +154,8 @@ function stInitMap(){
                 if(p&&p.geometry){
                     stDropoffLatLng=p.geometry.location;
                     stPlaceMarker('dropoff',stDropoffLatLng,p.formatted_address||p.name);
+                    if(dropoffInput) dropoffInput.blur();
+                    stClosePac();
                     var fr=stMatchFlatRate(p.formatted_address||p.name||'');
                     if(fr){ stApplyFlatRate(fr); }
                     else { stClearFlatRate(); stTryRoute(); }
@@ -542,6 +563,17 @@ document.addEventListener('DOMContentLoaded',function(){
     if(paxSel){paxSel.addEventListener('change',function(){
         if(stActiveFlatRate) stApplyFlatRate(stActiveFlatRate);
     });}
+
+    /* Global PAC click interceptor - close dropdown after any pac-item click */
+    document.addEventListener('click', function(e){
+        var pac = document.querySelector('.pac-container');
+        if(pac && !pac.contains(e.target)){
+            stClosePac();
+        }
+    }, true);
+
+    /* Also hide PAC on scroll */
+    window.addEventListener('scroll', stClosePac, {passive:true});
 
     /* Flat rate link */
     var frLink=document.getElementById('st-flatrate-link');
