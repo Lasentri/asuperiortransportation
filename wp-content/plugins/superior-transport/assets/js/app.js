@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.2.6 */
+/* A Superior Transportation - app.js v3.2.7 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -656,6 +656,21 @@ function stCloseFlatRatePopup(){
 }
 
 document.addEventListener('DOMContentLoaded',function(){
+    /* Size logo to match title text width */
+    (function(){
+        var logo = document.getElementById('st-hero-logo-img');
+        var title = document.getElementById('st-hero-title');
+        function syncLogoWidth(){
+            if(logo && title){
+                var w = title.offsetWidth;
+                if(w > 0){ logo.style.width = w+'px'; logo.style.maxWidth = w+'px'; }
+            }
+        }
+        syncLogoWidth();
+        window.addEventListener('resize', syncLogoWidth);
+        window.addEventListener('load', syncLogoWidth);
+    })();
+
     var calBtn=document.getElementById('st-show-calendar'),calWrap=document.getElementById('st-cal-wrap');
     if(calBtn&&calWrap){calBtn.addEventListener('click',function(e){e.preventDefault();calWrap.style.display=calWrap.style.display==='none'?'block':'none';calBtn.textContent=calWrap.style.display==='none'?'View open times below':'Hide calendar';});}
 
