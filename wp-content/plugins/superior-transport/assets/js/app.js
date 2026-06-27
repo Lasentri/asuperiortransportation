@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.2.2 */
+/* A Superior Transportation - app.js v3.2.3 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -464,9 +464,9 @@ function stOpenFlatRatePopup(){
 
     /* Directions blocks - only north for now; placeholders for others */
     var blocks = {
-        'north_bound': { label: '? North Bound', subtitle: 'Houghton ? Copper Harbor via US-41', color: '#1a73e8' },
-        'south_bound': { label: '? South Bound', subtitle: 'Coming Soon', color: '#888', disabled: true },
-        'east_bound':  { label: '? East Bound',  subtitle: 'Coming Soon', color: '#888', disabled: true },
+        'north_bound': { label: 'North Bound', subtitle: 'Houghton to Copper Harbor via US-41', color: '#1a73e8' },
+        'south_bound': { label: 'South Bound', subtitle: 'Coming Soon', color: '#888', disabled: true },
+        'east_bound':  { label: 'East Bound', subtitle: 'Coming Soon', color: '#888', disabled: true },
         'west_bound':  { label: '? West Bound',  subtitle: 'Houghton to Lake of the Clouds via M-26/US-45', color: '#2e7d32' },
     };
 
@@ -481,7 +481,7 @@ function stOpenFlatRatePopup(){
     var header = '<div style="background:#1a3a1a;padding:18px 22px;border-bottom:1px solid rgba(200,168,75,.3);position:sticky;top:0;z-index:1;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center">'
         + '<div><div style="font-family:Oswald,sans-serif;font-size:1.15rem;color:#c8a84b;letter-spacing:.06em;">?? FLAT RATE DESTINATIONS</div>'
-        + '<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:3px;">From Houghton · Hancock · CMX Airport</div></div>'
+        + '<div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:3px;">From Houghton Â· Hancock Â· CMX Airport</div></div>'
         + '<button id="st-fr-close" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:1.4rem;cursor:pointer;line-height:1;padding:4px 8px;">?</button>'
         + '</div></div>';
 
