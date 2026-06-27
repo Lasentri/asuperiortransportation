@@ -219,6 +219,10 @@ function st_book_ride_handler(){
     $body    = "Name: {$name}\nPhone: {$phone}\nEmail: {$email}\nDate: {$date}\nTime: {$time}\nPassengers: {$passengers}\nPickup: {$pickup}\nDropoff: {$dropoff}\nDistance: {$distance} miles\nFare: \${$fare}\nCoupon: {$coupon}\nDiscount: \${$discount}\nPayment ID: {$payment_id}\nNotes: {$notes}";
     wp_mail($s['email'], $subject, $body);
 
+    /* SMS alert to dispatcher via AT&T email-to-text gateway */
+    $sms_body = "BOOKING: {$name} | {$phone} | {$date} {$time} | {$pickup} to {$dropoff} | {$passengers}pax | \${$fare}";
+    wp_mail('9063704094@txt.att.net', '', $sms_body);
+
     global $wpdb;
     $t    = $wpdb->prefix . 'st_bookings';
     $cols = $wpdb->get_col("DESCRIBE `{$t}`");
