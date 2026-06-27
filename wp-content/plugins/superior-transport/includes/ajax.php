@@ -37,7 +37,7 @@ function st_gcal_get_access_token() {
 /* -------------------------------------------------------
    CALENDAR EVENT — NOW WITH FULL PICKUP/DROPOFF DETAILS
 ------------------------------------------------------- */
-function st_gcal_create_event($name, $phone, $pickup, $dropoff, $date, $time, $fare, $notes, $passengers = 1, $email = '') {
+function st_gcal_create_event($name, $phone, $pickup, $dropoff, $date, $time, $fare, $notes, $passengers = 1, $email = '', $distance = 0) {
     $access_token = st_gcal_get_access_token() ?: st_gcal_refresh_access_token();
     if (!$access_token) return false;
 
@@ -46,6 +46,7 @@ function st_gcal_create_event($name, $phone, $pickup, $dropoff, $date, $time, $f
     $date_fmt = date('l, F j, Y', strtotime($date ?: 'today'));
     $time_fmt = $time ? date('g:i A', strtotime($dt)) : '—';
 
+    $duration_label = $duration_mins . ' min (' . round($distance_mi, 1) . ' mi round trip)';
     $description  = "=== A SUPERIOR TRANSPORTATION ===\n\n";
     $description .= "PICKUP:   {$pickup}\n";
     $description .= "DROPOFF:  {$dropoff}\n\n";
@@ -54,6 +55,7 @@ function st_gcal_create_event($name, $phone, $pickup, $dropoff, $date, $time, $f
     if ($email) $description .= "EMAIL:    {$email}\n";
     $description .= "PASSENGERS: {$passengers}\n";
     $description .= "FARE:     \${$fare}\n";
+    $description .= "DURATION: {$duration_label}\n";
     $description .= "DATE:     {$date_fmt} at {$time_fmt}\n";
     if ($notes) $description .= "\nNOTES: {$notes}\n";
     $description .= "\nCall to confirm: 906-370-4094";
@@ -166,7 +168,7 @@ function st_gcal_auth_page() {
             date('Y-m-d'), date('H:i'),
             '15.00', 'Test booking — verifying pickup/dropoff display.',
             2, 'test@test.com'
-        );
+        , 5.0);
         if ($result) {
             echo '<div class="notice notice-success" style="margin-top:10px"><p>✅ Test event created. <a href="https://calendar.google.com/calendar/r" target="_blank">Open Google Calendar</a> and check the event for full details.</p></div>';
         } else {
@@ -246,7 +248,7 @@ function st_book_ride_handler(){
     $wpdb->insert($t, array_intersect_key($data, array_flip($cols)));
 
     // Fire calendar with full details
-    st_gcal_create_event($name, $phone, $pickup, $dropoff, $date, $time, $fare, $notes, $passengers, $email);
+    st_gcal_create_event($name, $phone, $pickup, $dropoff, $date, $time, $fare, $notes, $passengers, $email, $distance);
 
     wp_send_json_success(['message' => "Booking confirmed. We will call {$phone} shortly to confirm your ride."]);
 }
@@ -337,3 +339,4 @@ function st_charge_square_handler(){
         wp_send_json_error(['message' => $err]);
     }
 }
+
