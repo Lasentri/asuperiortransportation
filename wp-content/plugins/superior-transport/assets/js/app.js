@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.1.6 */
+/* A Superior Transportation - app.js v3.1.7 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -90,6 +90,30 @@ function stClosePac(){
 }
 
 /* 3-step flow: 1=Ride Details, 2=Contact+Book, 3=Done */
+
+function stBookMidnightFlight(e){
+    if(e) e.preventDefault();
+    /* Scroll to booking form */
+    var booking = document.getElementById('booking');
+    if(booking) booking.scrollIntoView({behavior:'smooth', block:'start'});
+    /* Set date to today */
+    var dateEl = document.getElementById('st-date');
+    if(dateEl){
+        var today = new Date();
+        var mm = String(today.getMonth()+1).padStart(2,'0');
+        var dd = String(today.getDate()).padStart(2,'0');
+        var yyyy = today.getFullYear();
+        dateEl.value = yyyy+'-'+mm+'-'+dd;
+    }
+    /* Set time to 23:59 */
+    var timeEl = document.getElementById('st-time');
+    if(timeEl) timeEl.value = '23:59';
+    /* Open flat rate popup after scroll settles */
+    setTimeout(function(){
+        stOpenFlatRatePopup();
+    }, 600);
+}
+
 function showStep(n){
     stClosePac();
     if(document.activeElement&&document.activeElement.blur) document.activeElement.blur();
@@ -698,16 +722,6 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 
 
-/* -------------------------------------------------
-   MIDNIGHT FLIGHTS FORM
-------------------------------------------------- */
-document.addEventListener('DOMContentLoaded',function(){
-    var mfDest=document.getElementById('mf-destination');
-    var mfOtherWrap=document.getElementById('mf-other-wrap');
-    if(mfDest&&mfOtherWrap){
-        mfDest.addEventListener('change',function(){
-            mfOtherWrap.style.display=this.value==='other'?'block':'none';
-        });
     }
 
     var mfSubmit=document.getElementById('mf-submit');
