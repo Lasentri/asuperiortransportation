@@ -13,9 +13,9 @@ include ST_DIR . 'templates/inc-header.php';
   <div class="st-hero-overlay"></div>
   <div class="st-hero-content">
 
-    <div class="st-hero-logo" style="width:100%;margin-bottom:10px;">
-      <img src="https://asuperiortransportation.com/wp-content/uploads/2026/06/logo3.png" id="st-hero-logo-img" style="width:100%;height:auto;display:block;">
-      <div id="st-hero-title" style="font-family:Oswald,sans-serif;font-size:1.1rem;color:#c8a84b;letter-spacing:.06em;font-weight:700;text-align:center;margin-top:6px;margin-bottom:2px;">A Superior Transportation &amp; Logistics</div>
+    <div class="st-hero-logo" style="text-align:center;margin-bottom:10px;">
+      <img src="https://asuperiortransportation.com/wp-content/uploads/2026/06/logo3.png" id="st-hero-logo-img" style="width:clamp(320px,60vw,700px);height:auto;display:block;margin:0 auto;">
+      <div id="st-hero-title" style="font-family:Oswald,sans-serif;font-size:1.1rem;color:#c8a84b;letter-spacing:.06em;font-weight:700;text-align:center;margin-top:4px;margin-bottom:2px;">A Superior Transportation &amp; Logistics</div>
       <div style="font-size:.72rem;color:rgba(255,255,255,.5);letter-spacing:.1em;text-align:center;">Est. 2017 · Houghton · Hancock · U.P.</div>
     </div>
 
