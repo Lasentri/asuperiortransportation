@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.2.3 */
+/* A Superior Transportation - app.js v3.2.4 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -467,7 +467,7 @@ function stOpenFlatRatePopup(){
         'north_bound': { label: 'North Bound', subtitle: 'Houghton to Copper Harbor via US-41', color: '#1a73e8' },
         'south_bound': { label: 'South Bound', subtitle: 'Coming Soon', color: '#888', disabled: true },
         'east_bound':  { label: 'East Bound', subtitle: 'Coming Soon', color: '#888', disabled: true },
-        'west_bound':  { label: '? West Bound',  subtitle: 'Houghton to Lake of the Clouds via M-26/US-45', color: '#2e7d32' },
+        'west_bound':  { label: 'West Bound', subtitle: 'Houghton to Lake of the Clouds via M-26/US-45', color: '#2e7d32' },
     };
 
     var overlay = document.createElement('div');
