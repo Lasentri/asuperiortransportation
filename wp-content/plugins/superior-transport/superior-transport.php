@@ -3,7 +3,7 @@
  * Plugin Name: A Superior Transportation - Full Site v3.0
  * Plugin URI:  https://asuperiortransportation.com
  * Description: Complete website - Homepage booking, Suggested Places, Gas Tracker, Calendar, Square Payments.
- * Version:     3.3.1
+ * Version:     3.0.6
  * Author:      A Superior Transportation
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 add_filter( 'wp_mail_from',      function() { return 'noreply@asuperiortransportation.com'; } );
 add_filter( 'wp_mail_from_name', function() { return 'A Superior Transportation'; } );
 
-define( 'ST_VERSION', '3.3.1' );
+define( 'ST_VERSION', '3.0.6' );
 define( 'ST_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'ST_URL',     plugin_dir_url( __FILE__ ) );
 

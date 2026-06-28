@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.3.1 */
+/* A Superior Transportation - app.js v3.2.8 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -315,9 +315,9 @@ function stSyncTotals(){
 async function stShowPaymentPopup(){
     var overlay=document.createElement('div');
     overlay.id='st-pay-overlay';
-    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;-webkit-overflow-scrolling:touch;'; window.scrollTo(0,0);
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
     var modal=document.createElement('div');
-    modal.style.cssText='background:#122812;border:2px solid #c8a84b;border-radius:10px;padding:28px;width:100%;max-width:420px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.6);margin-top:20px;max-height:90vh;overflow-y:auto;';
+    modal.style.cssText='background:#122812;border:2px solid #c8a84b;border-radius:10px;padding:28px;width:100%;max-width:420px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.6);';
 
     modal.innerHTML='<h3 style="font-family:Oswald,sans-serif;color:#c8a84b;margin:0 0 6px;font-size:1.2rem;letter-spacing:.06em">CARD PAYMENT</h3>'
         +'<div style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:16px">Total due: <strong style="color:#f5c518;font-size:1.15rem" id="st-popup-total">$0.00</strong></div>'
@@ -366,19 +366,8 @@ async function stShowPaymentPopup(){
         }
     }
 
-    /* Check Square immediately — if SDK blocked on mobile go straight to fallback */
-    if(typeof Square==='undefined'){
-        var sqWait=0;
-        var sqCheck=setInterval(function(){
-            sqWait+=300;
-            if(typeof Square!=='undefined'){clearInterval(sqCheck);initCard();}
-            else if(sqWait>=1500){clearInterval(sqCheck);showFallback();}
-        },300);
-    } else {
-        initCard().catch(function(){showFallback();});
-    }
-    var squareTimeout=setTimeout(function(){if(!squareCard) showFallback();},1500);
-    /* initCard handled above */
+    var squareTimeout=setTimeout(function(){if(!squareCard) showFallback();},4000);
+    initCard().then(function(){clearTimeout(squareTimeout);}).catch(function(){clearTimeout(squareTimeout);showFallback();});
 
     document.getElementById('st-popup-pay').addEventListener('click',async function(){
         var btn=this,errEl=document.getElementById('st-popup-error');
@@ -705,8 +694,6 @@ document.addEventListener('DOMContentLoaded',function(){
     /* Show/hide flat rate hint based on pickup */
     var pickupEl=document.getElementById('st-pickup');
     if(pickupEl){
-        pickupEl.addEventListener('input', stShowFlatRateHint);
-        pickupEl.addEventListener('change', stShowFlatRateHint);
     }
 
     /* Exact address locate button */
@@ -749,27 +736,26 @@ document.addEventListener('DOMContentLoaded',function(){
             dropoff=(document.getElementById('st-dropoff')||{}).value||'',
             errEl=document.getElementById('st-form-error-1');
         if(!date||!time||!pickup||!dropoff){if(errEl){errEl.textContent='Please fill in date, time, pickup and dropoff.';errEl.style.display='block';}return;}
-        /* Always proceed to step 2 — fare calculation is optional (flat rate may already be set) */
-        if(errEl) errEl.style.display='none';
-        /* Try to geocode in background if no fare yet — but don't block the user */
-        if(!stCalcFare && typeof google !== 'undefined' && google.maps){
-            try {
-                var gc=new google.maps.Geocoder();
-                gc.geocode({address:pickup+', Michigan, USA'},function(r1,s1){
-                    if(s1==='OK'&&r1[0]){
-                        stPickupLatLng=r1[0].geometry.location;
-                        stPlaceMarker('pickup',stPickupLatLng,pickup);
-                        gc.geocode({address:dropoff+', Michigan, USA'},function(r2,s2){
-                            if(s2==='OK'&&r2[0]){
-                                stDropoffLatLng=r2[0].geometry.location;
-                                stPlaceMarker('dropoff',stDropoffLatLng,dropoff);
-                                stTryRoute();
-                            }
-                        });
-                    }
-                });
-            } catch(e){}
+        if(!stCalcFare){
+            if(errEl){errEl.textContent='Please wait while we calculate your route...';errEl.style.display='block';}
+            var gc=new google.maps.Geocoder();
+            gc.geocode({address:pickup+', Michigan, USA'},function(r1,s1){
+                if(s1==='OK'&&r1[0]){
+                    stPickupLatLng=r1[0].geometry.location;
+                    stPlaceMarker('pickup',stPickupLatLng,pickup);
+                    gc.geocode({address:dropoff+', Michigan, USA'},function(r2,s2){
+                        if(s2==='OK'&&r2[0]){
+                            stDropoffLatLng=r2[0].geometry.location;
+                            stPlaceMarker('dropoff',stDropoffLatLng,dropoff);
+                            stTryRoute();
+                            setTimeout(function(){if(errEl) errEl.style.display='none';showStep(2);},1500);
+                        }
+                    });
+                }
+            });
+            return;
         }
+        if(errEl) errEl.style.display='none';
         showStep(2);
     });}
 
