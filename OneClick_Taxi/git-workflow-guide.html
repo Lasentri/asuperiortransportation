@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneClick Taxi — Git & Auto-Deploy Workflow Guide</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1a0f; color: #e0e0e0; line-height: 1.7; }
+
+/* POPUP */
+.oct-popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.oct-popup { background: linear-gradient(135deg, #1a3a1a, #0f2a0f); border: 2px solid #c8a84b; border-radius: 16px; padding: 40px 36px; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.6); animation: popIn .4s cubic-bezier(.34,1.56,.64,1); }
+@keyframes popIn { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.oct-popup-icon { font-size: 3.5rem; margin-bottom: 16px; }
+.oct-popup h2 { color: #f5c518; font-size: 1.5rem; margin-bottom: 12px; }
+.oct-popup p { color: rgba(255,255,255,.8); font-size: .95rem; margin-bottom: 10px; line-height: 1.6; }
+.oct-popup-warning { background: rgba(245,199,24,.1); border: 1px solid rgba(245,199,24,.4); border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-size: .88rem; color: #f5c518; font-weight: 600; }
+.oct-popup-link { color: #c8a84b; text-decoration: none; font-weight: 700; border-bottom: 1px dashed #c8a84b; }
+.oct-popup-link:hover { color: #f5c518; }
+.oct-popup-btn { margin-top: 20px; padding: 13px 32px; background: #c8a84b; color: #0f2a0f; border: none; border-radius: 8px; font-size: 1rem; font-weight: 800; cursor: pointer; transition: background .2s; }
+.oct-popup-btn:hover { background: #f5c518; }
+.oct-popup-note { margin-top: 12px; font-size: .78rem; color: rgba(255,255,255,.4); }
+
+/* LAYOUT */
+.guide-header { background: linear-gradient(135deg, #0a1a0a, #1a3a1a); padding: 60px 20px; text-align: center; border-bottom: 2px solid #c8a84b; }
+.guide-header h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); color: #c8a84b; margin-bottom: 10px; }
+.guide-header p { color: rgba(255,255,255,.65); font-size: 1rem; max-width: 600px; margin: 0 auto; }
+.guide-badge { display: inline-block; background: rgba(200,168,75,.15); border: 1px solid #c8a84b; color: #c8a84b; padding: 5px 16px; border-radius: 20px; font-size: .82rem; font-weight: 700; margin-bottom: 16px; }
+
+.guide-nav { background: #0a1a0a; border-bottom: 1px solid rgba(255,255,255,.1); padding: 0 20px; display: flex; gap: 0; overflow-x: auto; }
+.guide-nav a { color: rgba(255,255,255,.5); text-decoration: none; padding: 14px 18px; font-size: .85rem; font-weight: 600; white-space: nowrap; border-bottom: 3px solid transparent; transition: color .2s; }
+.guide-nav a:hover { color: #c8a84b; border-bottom-color: #c8a84b; }
+
+.guide-body { max-width: 900px; margin: 0 auto; padding: 40px 20px 80px; }
+
+/* SECTIONS */
+.guide-section { margin-bottom: 56px; }
+.guide-section h2 { font-size: 1.5rem; color: #c8a84b; margin-bottom: 6px; padding-bottom: 10px; border-bottom: 1px solid rgba(200,168,75,.3); display: flex; align-items: center; gap: 10px; }
+.guide-section p { color: rgba(255,255,255,.75); margin-bottom: 14px; font-size: .95rem; }
+
+/* STEPS */
+.step-list { counter-reset: steps; }
+.step { display: flex; gap: 16px; margin-bottom: 20px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 20px; position: relative; }
+.step:before { counter-increment: steps; content: counter(steps); background: #c8a84b; color: #0f2a0f; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .9rem; flex-shrink: 0; margin-top: 2px; }
+.step-content h3 { color: #fff; font-size: 1rem; margin-bottom: 6px; }
+.step-content p { color: rgba(255,255,255,.65); font-size: .9rem; margin-bottom: 8px; }
+.step-content ul { padding-left: 18px; }
+.step-content ul li { color: rgba(255,255,255,.65); font-size: .88rem; padding: 3px 0; }
+
+/* CODE BLOCKS */
+.code-block { background: #0a0a0a; border: 1px solid rgba(200,168,75,.25); border-radius: 8px; padding: 16px 20px; margin: 12px 0; position: relative; overflow-x: auto; }
+.code-block pre { color: #a5d6a7; font-family: 'Consolas','Monaco',monospace; font-size: .85rem; line-height: 1.7; white-space: pre; }
+.code-label { position: absolute; top: 8px; right: 10px; font-size: .68rem; color: rgba(255,255,255,.3); font-family: monospace; letter-spacing: .06em; }
+.copy-btn { position: absolute; top: 8px; right: 50px; background: rgba(200,168,75,.15); border: 1px solid rgba(200,168,75,.3); color: #c8a84b; padding: 3px 10px; border-radius: 4px; font-size: .7rem; cursor: pointer; }
+.copy-btn:hover { background: rgba(200,168,75,.3); }
+
+/* INFO BOXES */
+.info-box { border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-size: .9rem; display: flex; gap: 12px; align-items: flex-start; }
+.info-box.tip    { background: rgba(46,125,50,.15);  border: 1px solid rgba(46,125,50,.4);  color: #a5d6a7; }
+.info-box.warn   { background: rgba(245,199,24,.1);  border: 1px solid rgba(245,199,24,.3); color: #f5c518; }
+.info-box.danger { background: rgba(198,40,40,.15);  border: 1px solid rgba(198,40,40,.4);  color: #ef9a9a; }
+.info-box.claude { background: rgba(139,92,246,.15); border: 1px solid rgba(139,92,246,.4); color: #d8b4fe; }
+.info-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+
+/* WORKFLOW DIAGRAM */
+.workflow-diagram { display: flex; align-items: center; gap: 0; flex-wrap: wrap; justify-content: center; margin: 24px 0; }
+.wf-box { background: rgba(255,255,255,.06); border: 1px solid rgba(200,168,75,.3); border-radius: 8px; padding: 14px 18px; text-align: center; min-width: 120px; }
+.wf-box .wf-icon { font-size: 1.8rem; margin-bottom: 4px; }
+.wf-box .wf-label { font-size: .75rem; color: rgba(255,255,255,.6); font-weight: 700; letter-spacing: .06em; }
+.wf-arrow { color: #c8a84b; font-size: 1.4rem; padding: 0 6px; }
+
+/* CLAUDE SECTION */
+.claude-card { background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(59,130,246,.1)); border: 1px solid rgba(139,92,246,.4); border-radius: 12px; padding: 28px; margin: 20px 0; }
+.claude-card h3 { color: #d8b4fe; font-size: 1.1rem; margin-bottom: 12px; }
+.claude-card p { color: rgba(255,255,255,.75); font-size: .9rem; margin-bottom: 10px; }
+.claude-card ul { padding-left: 18px; }
+.claude-card ul li { color: rgba(255,255,255,.7); font-size: .88rem; padding: 4px 0; }
+.claude-pro-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(139,92,246,.2); border: 1px solid #7c3aed; color: #d8b4fe; padding: 8px 20px; border-radius: 20px; font-weight: 700; font-size: .9rem; margin: 12px 0; }
+.claude-pro-btn { display: inline-block; margin-top: 16px; padding: 12px 28px; background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #fff; border-radius: 8px; font-weight: 700; font-size: .95rem; text-decoration: none; }
+.claude-pro-btn:hover { background: linear-gradient(135deg, #6d28d9, #4338ca); }
+
+/* TABLE */
+.guide-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.guide-table th { background: rgba(200,168,75,.15); color: #c8a84b; padding: 10px 14px; text-align: left; font-size: .82rem; letter-spacing: .06em; border-bottom: 1px solid rgba(200,168,75,.3); }
+.guide-table td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.06); font-size: .88rem; color: rgba(255,255,255,.75); }
+.guide-table tr:hover td { background: rgba(255,255,255,.03); }
+
+/* FOOTER */
+.guide-footer { background: #0a1a0a; border-top: 1px solid rgba(255,255,255,.1); padding: 30px 20px; text-align: center; color: rgba(255,255,255,.3); font-size: .82rem; }
+.guide-footer a { color: #c8a84b; text-decoration: none; }
+
+@media(max-width:600px) {
+    .workflow-diagram { flex-direction: column; }
+    .wf-arrow { transform: rotate(90deg); }
+    .step { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- CLAUDE PRO POPUP -->
+<div class="oct-popup-overlay" id="oct-popup">
+  <div class="oct-popup">
+    <div class="oct-popup-icon">🤖</div>
+    <h2>Important Notice Before You Begin</h2>
+    <p>This workflow guide was built using an AI-assisted development process that makes plugin building, debugging, and deployment dramatically faster and more powerful.</p>
+    <div class="oct-popup-warning">
+      ⚠️ To make everything in this workflow function perfectly, you will need a <strong>Claude Pro account</strong> from Anthropic.
+    </div>
+    <p>Claude Pro gives you access to the most capable AI model available — the same one used to build the OneClick Taxi platform from scratch. It handles code writing, debugging, Git commits, server commands, and complex problem solving in real time.</p>
+    <p>Without it, you can still follow this guide — but with Claude Pro, what takes days takes <strong>20 minutes</strong>.</p>
+    <a href="https://claude.ai/upgrade" target="_blank" class="oct-popup-link">👉 Get Claude Pro at claude.ai/upgrade</a>
+    <br>
+    <button class="oct-popup-btn" onclick="document.getElementById('oct-popup').style.display='none'">
+      I Understand — Let's Build This 🚀
+    </button>
+    <p class="oct-popup-note">This guide assumes Claude Pro is active and open alongside your terminal.</p>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="guide-header">
+  <div class="guide-badge">OneClick Taxi — Developer Edition</div>
+  <h1>🛠️ Git & Auto-Deploy Workflow Guide</h1>
+  <p>The exact workflow used to build the OneClick Taxi platform — from zero to production in minutes using GitHub, auto-deploy webhooks, and Claude Pro.</p>
+</div>
+
+<!-- NAV -->
+<nav class="guide-nav">
+  <a href="#overview">Overview</a>
+  <a href="#requirements">Requirements</a>
+  <a href="#github">GitHub Setup</a>
+  <a href="#server">Server Setup</a>
+  <a href="#webhook">Auto-Deploy</a>
+  <a href="#claude">Claude Pro Workflow</a>
+  <a href="#commands">Quick Reference</a>
+  <a href="#troubleshooting">Troubleshooting</a>
+</nav>
+
+<div class="guide-body">
+
+  <!-- OVERVIEW -->
+  <div class="guide-section" id="overview">
+    <h2>🗺️ Overview — How This Workflow Works</h2>
+    <p>This is a professional auto-deploy pipeline. Every change you make gets pushed to GitHub, and your server automatically pulls the latest code within seconds. No FTP. No manual file uploads. No version confusion.</p>
+
+    <div class="workflow-diagram">
+      <div class="wf-box"><div class="wf-icon">🤖</div><div class="wf-label">Claude Pro<br>writes code</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-box"><div class="wf-icon">💾</div><div class="wf-label">GitHub<br>Desktop commit</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-box"><div class="wf-icon">☁️</div><div class="wf-label">Push to<br>GitHub.com</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-box"><div class="wf-icon">🔔</div><div class="wf-label">Webhook<br>fires</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-box"><div class="wf-icon">🖥️</div><div class="wf-label">Server pulls<br>latest code</div></div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-box"><div class="wf-icon">🌐</div><div class="wf-label">Site updated<br>instantly</div></div>
+    </div>
+
+    <div class="info-box claude">
+      <div class="info-icon">🤖</div>
+      <div>
+        <strong>Claude Pro is the engine of this workflow.</strong> You describe what you want, Claude writes the code, creates the files, handles Git commits — all from a single conversation. This guide shows you exactly how to set it up and use it.
+      </div>
+    </div>
+
+    <table class="guide-table">
+      <thead><tr><th>What You Get</th><th>Time to Set Up</th></tr></thead>
+      <tbody>
+        <tr><td>✅ GitHub repository for your plugin/theme</td><td>5 minutes</td></tr>
+        <tr><td>✅ GitHub Desktop for visual commit management</td><td>2 minutes</td></tr>
+        <tr><td>✅ Auto-deploy webhook on your server</td><td>10 minutes</td></tr>
+        <tr><td>✅ Claude Pro AI doing the heavy lifting</td><td>Instant</td></tr>
+        <tr><td>✅ Full version history of every change</td><td>Automatic</td></tr>
+        <tr><td>✅ One-command rollback if something breaks</td><td>30 seconds</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- REQUIREMENTS -->
+  <div class="guide-section" id="requirements">
+    <h2>📋 Requirements</h2>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-content">
+          <h3>Claude Pro Account</h3>
+          <p>This is the most important requirement. Claude Pro gives you access to the advanced AI model that writes, debugs, and deploys your code. Without it, this workflow loses most of its power.</p>
+          <p><a href="https://claude.ai/upgrade" target="_blank" style="color:#d8b4fe;font-weight:700">→ Get Claude Pro at claude.ai/upgrade</a></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h3>GitHub Account (free)</h3>
+          <p>Your code repository lives here. Sign up at <a href="https://github.com" target="_blank" style="color:#c8a84b">github.com</a> — the free plan is all you need.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h3>GitHub Desktop (free)</h3>
+          <p>Visual interface for committing and pushing changes. Much easier than command line for beginners. Download at <a href="https://desktop.github.com" target="_blank" style="color:#c8a84b">desktop.github.com</a></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h3>A Linux Server with SSH Access</h3>
+          <p>Your WordPress site needs to be on a VPS or dedicated server where you can run commands. Shared hosting will NOT work for the auto-deploy webhook.</p>
+          <ul>
+            <li>Recommended: Ubuntu 22.04 or 24.04</li>
+            <li>Minimum 1GB RAM, 20GB storage</li>
+            <li>SSH client: PuTTY (Windows) or Terminal (Mac/Linux)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h3>PuTTY or Terminal</h3>
+          <p>For connecting to your server via SSH. Download PuTTY at <a href="https://putty.org" target="_blank" style="color:#c8a84b">putty.org</a> (Windows) or use the built-in Terminal on Mac.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GITHUB SETUP -->
+  <div class="guide-section" id="github">
+    <h2>🐙 Step 1 — GitHub Repository Setup</h2>
+
+    <div class="step-list">
+      <div class="step">
+        <div class="step-content">
+          <h3>Create a new repository on GitHub.com</h3>
+          <p>Go to <a href="https://github.com/new" target="_blank" style="color:#c8a84b">github.com/new</a> and fill in:</p>
+          <ul>
+            <li><strong>Repository name:</strong> e.g. <code>my-taxi-site</code></li>
+            <li><strong>Visibility:</strong> Private (recommended — keeps your code secure)</li>
+            <li><strong>Initialize with README:</strong> ✅ Check this</li>
+          </ul>
+          <p>Click <strong>Create repository</strong>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Generate a GitHub Personal Access Token</h3>
+          <p>Your server needs this to pull code from GitHub securely.</p>
+          <ul>
+            <li>Go to GitHub → Your Profile → <strong>Settings</strong></li>
+            <li>Scroll to <strong>Developer settings → Personal access tokens → Tokens (classic)</strong></li>
+            <li>Click <strong>Generate new token (classic)</strong></li>
+            <li>Name it: <code>my-server-deploy</code></li>
+            <li>Expiration: No expiration (or 1 year)</li>
+            <li>Scopes: Check <strong>repo</strong> (full repository access)</li>
+            <li>Click <strong>Generate token</strong></li>
+            <li>⚠️ <strong>COPY IT NOW</strong> — you won't see it again</li>
+          </ul>
+          <div class="info-box warn">
+            <div class="info-icon">⚠️</div>
+            <div>Save your token somewhere safe like a password manager. It looks like: <code>ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ123456</code></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Install GitHub Desktop and clone your repo</h3>
+          <ul>
+            <li>Download and install <a href="https://desktop.github.com" target="_blank" style="color:#c8a84b">GitHub Desktop</a></li>
+            <li>Sign in with your GitHub account</li>
+            <li>Click <strong>File → Clone Repository</strong></li>
+            <li>Select your repo from the list</li>
+            <li>Choose a local folder — e.g. <code>C:\Sites\my-taxi-site</code></li>
+            <li>Click <strong>Clone</strong></li>
+          </ul>
+          <p>This creates a local copy of your repository on your computer.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Copy your WordPress plugin files into the repo folder</h3>
+          <p>Navigate to your cloned repo folder and copy your plugin files there. For example, copy your <code>oneclick-taxi</code> plugin folder into the repo.</p>
+          <p>GitHub Desktop will automatically detect the new files and show them as "changed".</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Make your first commit and push</h3>
+          <ul>
+            <li>In GitHub Desktop, you'll see all your files listed under "Changes"</li>
+            <li>In the bottom left, type a summary: <code>Initial commit - OneClick Taxi plugin</code></li>
+            <li>Click <strong>Commit to main</strong></li>
+            <li>Click <strong>Push origin</strong> (top right)</li>
+          </ul>
+          <p>Your files are now on GitHub. ✅</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVER SETUP -->
+  <div class="guide-section" id="server">
+    <h2>🖥️ Step 2 — Server Setup</h2>
+    <p>Connect to your server with PuTTY (Windows) or Terminal (Mac) and run these commands.</p>
+
+    <div class="step-list">
+      <div class="step">
+        <div class="step-content">
+          <h3>Navigate to your WordPress site directory</h3>
+          <div class="code-block">
+            <div class="code-label">BASH</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre>cd /var/www/yoursite.com</pre>
+          </div>
+          <p>Replace <code>yoursite.com</code> with your actual site folder name.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Initialize Git and connect to your GitHub repo</h3>
+          <div class="code-block">
+            <div class="code-label">BASH</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre>git init
+git remote add origin https://YOUR_TOKEN@github.com/YOUR_USERNAME/YOUR_REPO.git
+git fetch origin
+git checkout -b main origin/main</pre>
+          </div>
+          <p>Replace <code>YOUR_TOKEN</code>, <code>YOUR_USERNAME</code>, and <code>YOUR_REPO</code> with your actual values.</p>
+          <div class="info-box tip">
+            <div class="info-icon">💡</div>
+            <div>Example: <code>https://ghp_abc123@github.com/JohnDoe/my-taxi-site.git</code></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Test that git pull works</h3>
+          <div class="code-block">
+            <div class="code-label">BASH</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre>git pull origin main</pre>
+          </div>
+          <p>You should see: <code>Already up to date.</code> or a list of files pulled. If you get an authentication error, double-check your token.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Set correct file permissions</h3>
+          <div class="code-block">
+            <div class="code-label">BASH</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre>chown -R www-data:www-data /var/www/yoursite.com
+find /var/www/yoursite.com -type f -name "*.php" -exec chmod 644 {} \;
+find /var/www/yoursite.com -type d -exec chmod 755 {} \;</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEBHOOK -->
+  <div class="guide-section" id="webhook">
+    <h2>🔔 Step 3 — Auto-Deploy Webhook</h2>
+    <p>This is the magic. Every time you push to GitHub, your server automatically pulls the new code. No manual steps.</p>
+
+    <div class="step-list">
+      <div class="step">
+        <div class="step-content">
+          <h3>Create the deploy script on your server</h3>
+          <div class="code-block">
+            <div class="code-label">BASH</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre>nano /var/www/yoursite.com/deploy.php</pre>
+          </div>
+          <p>Paste this code into the file:</p>
+          <div class="code-block">
+            <div class="code-label">PHP</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre>&lt;?php
+/* Auto-deploy webhook — triggered by GitHub push */
+$secret = 'YOUR_WEBHOOK_SECRET'; /* Change this to something random */
+$logfile = '/var/log/deploy.log';
+
+/* Verify GitHub signature */
+$payload   = file_get_contents('php://input');
+$signature = 'sha256=' . hash_hmac('sha256', $payload, $secret);
+$received  = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
+
+if ( ! hash_equals($signature, $received) ) {
+    http_response_code(403);
+    file_put_contents($logfile, date('Y-m-d H:i:s')." UNAUTHORIZED\n", FILE_APPEND);
+    exit('Unauthorized');
+}
+
+/* Pull latest code */
+$output = shell_exec('cd /var/www/yoursite.com && git pull origin main 2>&1');
+file_put_contents($logfile, date('Y-m-d H:i:s')." DEPLOY:\n".$output."\n", FILE_APPEND);
+
+http_response_code(200);
+echo 'Deployed: ' . date('Y-m-d H:i:s');
+?&gt;</pre>
+          </div>
+          <p>Save with <strong>Ctrl+X → Y → Enter</strong>. Replace <code>YOUR_WEBHOOK_SECRET</code> with a random string like <code>mySecretKey2026!</code></p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Create the deploy log file</h3>
+          <div class="code-block">
+            <div class="code-label">BASH</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre>touch /var/log/deploy.log && chmod 666 /var/log/deploy.log</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Add the webhook on GitHub</h3>
+          <ul>
+            <li>Go to your GitHub repository</li>
+            <li>Click <strong>Settings → Webhooks → Add webhook</strong></li>
+            <li><strong>Payload URL:</strong> <code>https://yoursite.com/deploy.php</code></li>
+            <li><strong>Content type:</strong> application/json</li>
+            <li><strong>Secret:</strong> the same secret you put in deploy.php</li>
+            <li><strong>Events:</strong> Just the push event</li>
+            <li>Click <strong>Add webhook</strong></li>
+          </ul>
+          <div class="info-box tip">
+            <div class="info-icon">💡</div>
+            <div>After saving, GitHub will send a test ping. Click on the webhook and scroll to "Recent Deliveries" — you should see a green ✅ for the test ping.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Test the full pipeline</h3>
+          <p>Make a small change — add a comment to any file in GitHub Desktop, commit it, push it. Then on your server run:</p>
+          <div class="code-block">
+            <div class="code-label">BASH</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre>tail -f /var/log/deploy.log</pre>
+          </div>
+          <p>You should see the deploy log update automatically within seconds of pushing. That's it — your pipeline is live. 🎉</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLAUDE WORKFLOW -->
+  <div class="guide-section" id="claude">
+    <h2>🤖 Step 4 — The Claude Pro Workflow</h2>
+
+    <div class="info-box claude">
+      <div class="info-icon">⚠️</div>
+      <div><strong>Claude Pro is required for this workflow.</strong> The free version has message limits that will interrupt your development flow at critical moments. Pro gives you unlimited messages and access to the most capable model.</div>
+    </div>
+
+    <div class="claude-card">
+      <h3>Why Claude Pro Makes This Workflow Extraordinary</h3>
+      <p>Every file in the OneClick Taxi platform — including the booking form, Google Calendar integration, Square payment system, auto-deploy webhook, and this guide — was written by Claude Pro in real-time conversation.</p>
+      <ul>
+        <li>🚀 Writes complete PHP, JavaScript, CSS files on demand</li>
+        <li>🐛 Debugs errors by reading your server logs</li>
+        <li>📤 Pushes code directly to GitHub via API</li>
+        <li>🔧 Fixes merge conflicts and git issues</li>
+        <li>📋 Writes commit messages and documentation</li>
+        <li>🗄️ Writes MySQL queries and manages your database</li>
+        <li>🔒 Handles security, CSP headers, SPF records</li>
+        <li>📅 Built Google Calendar OAuth from scratch</li>
+        <li>💳 Integrated Square payments with fallback</li>
+      </ul>
+      <div class="claude-pro-badge">✨ Claude Pro — claude.ai</div>
+      <br>
+      <a href="https://claude.ai/upgrade" target="_blank" class="claude-pro-btn">Get Claude Pro →</a>
+    </div>
+
+    <div class="step-list">
+      <div class="step">
+        <div class="step-content">
+          <h3>Open Claude Pro alongside your terminal</h3>
+          <p>Keep two windows open side by side: Claude Pro in your browser, and PuTTY/Terminal connected to your server. This is your development environment.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Give Claude your GitHub credentials at the start of each session</h3>
+          <p>Start every development session by telling Claude:</p>
+          <div class="code-block">
+            <div class="code-label">PROMPT TO CLAUDE</div>
+            <pre>I'm working on my WordPress plugin at:
+- GitHub repo: https://github.com/USERNAME/REPO
+- GitHub token: ghp_yourtoken
+- Server path: /var/www/yoursite.com
+- WordPress DB: your_db_name (prefix: wp_)
+
+Let's continue building [describe what you want].</pre>
+          </div>
+          <div class="info-box tip">
+            <div class="info-icon">💡</div>
+            <div>Claude can push code changes directly to GitHub and tell you exactly what commands to run on the server. You become the hands, Claude is the brain.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>The day-to-day workflow loop</h3>
+          <p>Once set up, every development session follows this loop:</p>
+          <ol style="padding-left:18px;color:rgba(255,255,255,.7);font-size:.9rem">
+            <li style="padding:5px 0">Tell Claude what you want to build or fix</li>
+            <li style="padding:5px 0">Claude writes the code and pushes it to GitHub</li>
+            <li style="padding:5px 0">You run <code>git pull origin main</code> on the server <em>(or the webhook does it automatically)</em></li>
+            <li style="padding:5px 0">Refresh your browser — change is live</li>
+            <li style="padding:5px 0">If something breaks, paste the error into Claude — it fixes it</li>
+            <li style="padding:5px 0">Repeat</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>When git pull fails — the fix</h3>
+          <p>Sometimes your server has local changes that conflict with what's on GitHub. Always fix this with:</p>
+          <div class="code-block">
+            <div class="code-label">BASH</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre>git checkout -- wp-content/plugins/your-plugin/filename.php
+git pull origin main</pre>
+          </div>
+          <p>Or to discard ALL local changes and force-pull:</p>
+          <div class="code-block">
+            <div class="code-label">BASH — NUCLEAR OPTION</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre>git fetch origin
+git reset --hard origin/main</pre>
+          </div>
+          <div class="info-box danger">
+            <div class="info-icon">⚠️</div>
+            <div>The nuclear option discards ALL local changes. Only use it if you're sure everything important is already on GitHub.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-content">
+          <h3>Cache busting — force browser to load new files</h3>
+          <p>When you update CSS or JS files, WordPress may serve the old cached version. Bump the version number to bust the cache:</p>
+          <div class="code-block">
+            <div class="code-label">BASH</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            <pre>sed -i "s/define( 'OCT_VERSION', '1.0.0'/define( 'OCT_VERSION', '1.0.1'/" \
+  wp-content/plugins/oneclick-taxi/oneclick-taxi.php</pre>
+          </div>
+          <p>Or ask Claude to bump the version — it'll update the main plugin file and push it automatically.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK REFERENCE -->
+  <div class="guide-section" id="commands">
+    <h2>⚡ Quick Reference — Commands You'll Use Daily</h2>
+
+    <table class="guide-table">
+      <thead><tr><th>What You Want To Do</th><th>Command</th></tr></thead>
+      <tbody>
+        <tr><td>Pull latest code from GitHub</td><td><code>git pull origin main</code></td></tr>
+        <tr><td>Check what's changed locally</td><td><code>git status</code></td></tr>
+        <tr><td>View deploy log live</td><td><code>tail -f /var/log/deploy.log</code></td></tr>
+        <tr><td>Discard local change to one file</td><td><code>git checkout -- path/to/file.php</code></td></tr>
+        <tr><td>Discard all local changes</td><td><code>git reset --hard origin/main</code></td></tr>
+        <tr><td>View recent commits</td><td><code>git log --oneline -10</code></td></tr>
+        <tr><td>Roll back to previous version</td><td><code>git revert HEAD</code></td></tr>
+        <tr><td>Check server PHP errors</td><td><code>tail -50 /var/log/apache2/error.log</code></td></tr>
+        <tr><td>Check mail delivery</td><td><code>tail -20 /var/log/syslog | grep postfix</code></td></tr>
+        <tr><td>Restart web server</td><td><code>systemctl restart apache2</code></td></tr>
+        <tr><td>Clear WordPress cache</td><td><code>wp cache flush --path=/var/www/yoursite.com</code></td></tr>
+        <tr><td>Check who's connected to server</td><td><code>who</code></td></tr>
+        <tr><td>Check disk space</td><td><code>df -h</code></td></tr>
+        <tr><td>Check server memory</td><td><code>free -h</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TROUBLESHOOTING -->
+  <div class="guide-section" id="troubleshooting">
+    <h2>🔧 Troubleshooting</h2>
+
+    <div class="step-list">
+      <div class="step">
+        <div class="step-content">
+          <h3>"Permission denied" on git pull</h3>
+          <p>Your token may have expired or be incorrect. Generate a new token on GitHub and update the remote URL:</p>
+          <div class="code-block"><pre>git remote set-url origin https://NEW_TOKEN@github.com/USERNAME/REPO.git</pre></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h3>Webhook not firing</h3>
+          <p>Check GitHub → Settings → Webhooks → your webhook → Recent Deliveries. If you see a red ✗, click it and read the response. Common causes:</p>
+          <ul>
+            <li>Your deploy.php URL is wrong</li>
+            <li>The secret doesn't match</li>
+            <li>PHP is not allowed to run <code>shell_exec</code></li>
+          </ul>
+          <p>Test shell_exec on your server:</p>
+          <div class="code-block"><pre>php -r "echo shell_exec('echo hello');"</pre></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h3>Site shows old version after pushing</h3>
+          <p>Either the webhook didn't fire, or browser cache. Try:</p>
+          <div class="code-block"><pre># Force pull manually
+cd /var/www/yoursite.com && git pull origin main
+
+# Hard refresh browser
+Ctrl+Shift+R (Windows/Linux)
+Cmd+Shift+R (Mac)</pre></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h3>Claude pushed code but I can't see it on my server</h3>
+          <p>Run git pull manually. Sometimes the webhook fires but the pull fails due to local changes. Check the deploy log:</p>
+          <div class="code-block"><pre>cat /var/log/deploy.log | tail -20</pre></div>
+          <p>If it shows merge conflicts, paste the output into Claude and it will tell you exactly what to run.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-content">
+          <h3>Everything broke and I don't know why</h3>
+          <p>Open Claude Pro, paste the error message, and say: <em>"This broke after the last push. Here is the error. Here is the deploy log. Fix it."</em></p>
+          <div class="info-box claude">
+            <div class="info-icon">🤖</div>
+            <div>This is where Claude Pro shines. Paste the error, paste the logs, paste the code — Claude will diagnose and fix it, usually in one response.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:30px 0;border-top:1px solid rgba(255,255,255,.1)">
+    <div style="font-size:2rem;margin-bottom:10px">🚕</div>
+    <p style="color:rgba(255,255,255,.5);font-size:.9rem">Built with OneClick Taxi Ordering App</p>
+    <p style="color:rgba(255,255,255,.3);font-size:.82rem;margin-top:6px">A Superior Transportation &amp; Logistics · asuperiortransportation.com</p>
+    <p style="margin-top:12px"><a href="https://claude.ai/upgrade" target="_blank" style="color:#d8b4fe;font-size:.88rem">🤖 Get Claude Pro — the AI that built this →</a></p>
+  </div>
+
+</div>
+
+<div class="guide-footer">
+  <p>OneClick Taxi Ordering App — Git &amp; Auto-Deploy Workflow Guide v1.0</p>
+  <p style="margin-top:6px">Questions? <a href="mailto:stalcollc@gmail.com">stalcollc@gmail.com</a></p>
+</div>
+
+<script>
+function copyCode(btn) {
+    var pre = btn.parentElement.querySelector('pre');
+    navigator.clipboard.writeText(pre.textContent).then(function(){
+        btn.textContent = '✅ Copied';
+        setTimeout(function(){ btn.textContent = 'Copy'; }, 2000);
+    });
+}
+</script>
+</body>
+</html>
