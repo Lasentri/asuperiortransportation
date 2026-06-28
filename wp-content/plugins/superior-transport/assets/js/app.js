@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.2.8 */
+/* A Superior Transportation - app.js v3.2.9 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -738,26 +738,27 @@ document.addEventListener('DOMContentLoaded',function(){
             dropoff=(document.getElementById('st-dropoff')||{}).value||'',
             errEl=document.getElementById('st-form-error-1');
         if(!date||!time||!pickup||!dropoff){if(errEl){errEl.textContent='Please fill in date, time, pickup and dropoff.';errEl.style.display='block';}return;}
-        if(!stCalcFare){
-            if(errEl){errEl.textContent='Please wait while we calculate your route...';errEl.style.display='block';}
-            var gc=new google.maps.Geocoder();
-            gc.geocode({address:pickup+', Michigan, USA'},function(r1,s1){
-                if(s1==='OK'&&r1[0]){
-                    stPickupLatLng=r1[0].geometry.location;
-                    stPlaceMarker('pickup',stPickupLatLng,pickup);
-                    gc.geocode({address:dropoff+', Michigan, USA'},function(r2,s2){
-                        if(s2==='OK'&&r2[0]){
-                            stDropoffLatLng=r2[0].geometry.location;
-                            stPlaceMarker('dropoff',stDropoffLatLng,dropoff);
-                            stTryRoute();
-                            setTimeout(function(){if(errEl) errEl.style.display='none';showStep(2);},1500);
-                        }
-                    });
-                }
-            });
-            return;
-        }
+        /* Always proceed to step 2 — fare calculation is optional (flat rate may already be set) */
         if(errEl) errEl.style.display='none';
+        /* Try to geocode in background if no fare yet — but don't block the user */
+        if(!stCalcFare && typeof google !== 'undefined' && google.maps){
+            try {
+                var gc=new google.maps.Geocoder();
+                gc.geocode({address:pickup+', Michigan, USA'},function(r1,s1){
+                    if(s1==='OK'&&r1[0]){
+                        stPickupLatLng=r1[0].geometry.location;
+                        stPlaceMarker('pickup',stPickupLatLng,pickup);
+                        gc.geocode({address:dropoff+', Michigan, USA'},function(r2,s2){
+                            if(s2==='OK'&&r2[0]){
+                                stDropoffLatLng=r2[0].geometry.location;
+                                stPlaceMarker('dropoff',stDropoffLatLng,dropoff);
+                                stTryRoute();
+                            }
+                        });
+                    }
+                });
+            } catch(e){}
+        }
         showStep(2);
     });}
 
