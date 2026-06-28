@@ -219,9 +219,11 @@ function st_book_ride_handler(){
     $body    = "Name: {$name}\nPhone: {$phone}\nEmail: {$email}\nDate: {$date}\nTime: {$time}\nPassengers: {$passengers}\nPickup: {$pickup}\nDropoff: {$dropoff}\nDistance: {$distance} miles\nFare: \${$fare}\nCoupon: {$coupon}\nDiscount: \${$discount}\nPayment ID: {$payment_id}\nNotes: {$notes}";
     wp_mail($s['email'], $subject, $body);
 
-    /* Booking alert to dispatcher phone (Gmail push notification) */
-    $alert_subject = "RIDE BOOKED: {$name} | {$date} {$time}";
-    $alert_body    = "{$name} | {$phone}\n{$pickup} -> {$dropoff}\n{$passengers} pax | \${$fare}";
+    /* Pushover push notification to dispatcher iPhone */
+    $alert_subject = "RIDE: {$name} | {$date} {$time}";
+    $alert_body    = "{$phone}\n{$pickup} to {$dropoff}\n{$passengers} pax | \${$fare}";
+    wp_mail('ipbc536wtc@pomail.net', $alert_subject, $alert_body);
+    /* Also send full details to Gmail */
     wp_mail('stalcollc@gmail.com', $alert_subject, $alert_body);
 
     global $wpdb;
