@@ -65,12 +65,9 @@ include ST_DIR . 'templates/inc-header.php';
               <select id="st-time" name="time" <?php if($s['require_time']==='1') echo 'required';?>>
                 <option value="">Select time</option>
                 <?php
-                /* Available hours: 6:00 AM to 12:00 AM (midnight), skip 12:30 AM - 5:45 AM */
-                for($h=0;$h<24;$h++){
+                /* Available hours: 6:00 AM to 11:45 PM only — no midnight or early morning */
+                for($h=6;$h<24;$h++){
                     for($m=0;$m<60;$m+=15){
-                        /* Skip 00:30 through 05:45 (12:30 AM to 5:45 AM) */
-                        if($h===0 && $m>=30) continue;
-                        if($h>=1 && $h<=5) continue;
                         $val=sprintf('%02d:%02d',$h,$m);
                         $disp=date('g:i A',strtotime($val));
                         echo "<option value='{$val}'>{$disp}</option>";
