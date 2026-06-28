@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.2.9 */
+/* A Superior Transportation - app.js v3.3.0 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -366,7 +366,7 @@ async function stShowPaymentPopup(){
         }
     }
 
-    var squareTimeout=setTimeout(function(){if(!squareCard) showFallback();},4000);
+    var squareTimeout=setTimeout(function(){if(!squareCard) showFallback();},1500);
     initCard().then(function(){clearTimeout(squareTimeout);}).catch(function(){clearTimeout(squareTimeout);showFallback();});
 
     document.getElementById('st-popup-pay').addEventListener('click',async function(){
