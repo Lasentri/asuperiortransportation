@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.3.3 */
+/* A Superior Transportation - app.js v3.3.4 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -194,75 +194,41 @@ function stInitMap(){
         var dropoffInput=document.getElementById('st-dropoff');
 
         /* Use new PlaceAutocompleteElement API (replaces deprecated places.Autocomplete) */
-        function stSetupAutocomplete(inputEl, type) {
+        /* Address autocomplete */
+        function stInitAC(inputEl, type) {
             if (!inputEl) return;
             try {
-                var pac = new google.maps.places.PlaceAutocompleteElement({
-                    inputElement: inputEl,
+                var ac = new google.maps.places.Autocomplete(inputEl, {
                     componentRestrictions: {country: 'us'},
+                    fields: ['geometry', 'formatted_address', 'name'],
+                    types: ['geocode', 'establishment']
                 });
                 inputEl.addEventListener('focus', function(){ stActiveField = type; });
-                inputEl.addEventListener('gmp-placeselect', function(e) {
-                    var place = e.place;
-                    if (!place) return;
-                    place.fetchFields({fields:['geometry','formattedAddress','displayName']}).then(function(){
-                        var loc  = place.geometry && place.geometry.location ? place.geometry.location : null;
-                        var addr = place.formattedAddress || (place.displayName ? place.displayName.text : inputEl.value);
-                        if (!loc) return;
-                        if (type === 'pickup') {
-                            stPickupLatLng = loc;
-                            stPlaceMarker('pickup', loc, addr);
-                            if (stMap) stMap.panTo(loc);
-                            stTryRoute();
-                            inputEl.blur();
-                            setTimeout(function(){ if(dropoffInput){dropoffInput.focus();stActiveField='dropoff';} }, 150);
-                        } else {
-                            stDropoffLatLng = loc;
-                            stPlaceMarker('dropoff', loc, addr);
-                            inputEl.value = addr;
-                            inputEl.blur();
-                            var fr = stMatchFlatRate(addr);
-                            if (fr) { stApplyFlatRate(fr); }
-                            else { stClearFlatRate(); stTryRoute(); }
-                        }
-                    }).catch(function(e){ console.warn('place fetchFields error', e); });
+                ac.addListener('place_changed', function(){
+                    var p = ac.getPlace();
+                    if (!p || !p.geometry) return;
+                    var loc  = p.geometry.location;
+                    var addr = p.formatted_address || p.name || inputEl.value;
+                    if (type === 'pickup') {
+                        stPickupLatLng = loc;
+                        inputEl.value = addr;
+                        stPlaceMarker('pickup', loc, addr);
+                        if (stMap) stMap.panTo(loc);
+                        stTryRoute();
+                        setTimeout(function(){ if(dropoffInput){dropoffInput.focus();stActiveField='dropoff';} }, 150);
+                    } else {
+                        stDropoffLatLng = loc;
+                        inputEl.value = addr;
+                        stPlaceMarker('dropoff', loc, addr);
+                        var fr = stMatchFlatRate(addr);
+                        if (fr) { stApplyFlatRate(fr); }
+                        else { stClearFlatRate(); stTryRoute(); }
+                    }
                 });
-            } catch(e) {
-                /* Fallback to old Autocomplete if PlaceAutocompleteElement not available */
-                console.warn('PlaceAutocompleteElement not available, falling back', e);
-                try {
-                    var oldAC = new google.maps.places.Autocomplete(inputEl, {
-                        componentRestrictions:{country:'us'},
-                        fields:['geometry','formatted_address','name']
-                    });
-                    oldAC.addListener('place_changed', function(){
-                        var p = oldAC.getPlace();
-                        if (!p || !p.geometry) return;
-                        var loc  = p.geometry.location;
-                        var addr = p.formatted_address || p.name || inputEl.value;
-                        if (type === 'pickup') {
-                            stPickupLatLng = loc;
-                            stPlaceMarker('pickup', loc, addr);
-                            if (stMap) stMap.panTo(loc);
-                            stTryRoute();
-                            inputEl.blur();
-                            setTimeout(function(){ if(dropoffInput){dropoffInput.focus();stActiveField='dropoff';} }, 150);
-                        } else {
-                            stDropoffLatLng = loc;
-                            stPlaceMarker('dropoff', loc, addr);
-                            inputEl.blur();
-                            var fr = stMatchFlatRate(addr);
-                            if (fr) { stApplyFlatRate(fr); }
-                            else { stClearFlatRate(); stTryRoute(); }
-                        }
-                    });
-                    inputEl.addEventListener('focus', function(){ stActiveField = type; });
-                } catch(e2) { console.warn('Autocomplete fallback also failed', e2); }
-            }
+            } catch(e) { console.warn('Autocomplete setup failed', e); }
         }
-
-        stSetupAutocomplete(pickupInput, 'pickup');
-        stSetupAutocomplete(dropoffInput, 'dropoff');
+        stInitAC(pickupInput, 'pickup');
+        stInitAC(dropoffInput, 'dropoff');
     }
     if(placesMapEl&&window.stPlacesData){
         var pMap=new google.maps.Map(placesMapEl,{center:{lat:47.25,lng:-88.35},zoom:10,gestureHandling:'greedy',mapTypeControl:false,streetViewControl:false});
