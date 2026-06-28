@@ -1,4 +1,4 @@
-/* A Superior Transportation - app.js v3.3.0 */
+/* A Superior Transportation - app.js v3.3.1 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
@@ -315,9 +315,9 @@ function stSyncTotals(){
 async function stShowPaymentPopup(){
     var overlay=document.createElement('div');
     overlay.id='st-pay-overlay';
-    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;-webkit-overflow-scrolling:touch;'; window.scrollTo(0,0);
     var modal=document.createElement('div');
-    modal.style.cssText='background:#122812;border:2px solid #c8a84b;border-radius:10px;padding:28px;width:100%;max-width:420px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.6);';
+    modal.style.cssText='background:#122812;border:2px solid #c8a84b;border-radius:10px;padding:28px;width:100%;max-width:420px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.6);margin-top:20px;max-height:90vh;overflow-y:auto;';
 
     modal.innerHTML='<h3 style="font-family:Oswald,sans-serif;color:#c8a84b;margin:0 0 6px;font-size:1.2rem;letter-spacing:.06em">CARD PAYMENT</h3>'
         +'<div style="color:rgba(255,255,255,.5);font-size:.85rem;margin-bottom:16px">Total due: <strong style="color:#f5c518;font-size:1.15rem" id="st-popup-total">$0.00</strong></div>'
@@ -366,8 +366,19 @@ async function stShowPaymentPopup(){
         }
     }
 
+    /* Check Square immediately — if SDK blocked on mobile go straight to fallback */
+    if(typeof Square==='undefined'){
+        var sqWait=0;
+        var sqCheck=setInterval(function(){
+            sqWait+=300;
+            if(typeof Square!=='undefined'){clearInterval(sqCheck);initCard();}
+            else if(sqWait>=1500){clearInterval(sqCheck);showFallback();}
+        },300);
+    } else {
+        initCard().catch(function(){showFallback();});
+    }
     var squareTimeout=setTimeout(function(){if(!squareCard) showFallback();},1500);
-    initCard().then(function(){clearTimeout(squareTimeout);}).catch(function(){clearTimeout(squareTimeout);showFallback();});
+    /* initCard handled above */
 
     document.getElementById('st-popup-pay').addEventListener('click',async function(){
         var btn=this,errEl=document.getElementById('st-popup-error');
