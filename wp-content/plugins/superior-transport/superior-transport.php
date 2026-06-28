@@ -61,12 +61,12 @@ function st_csp_headers( $headers ) {
 
     $csp = implode( '; ', [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://web.squarecdn.com https://squareup.com https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net https://apis.google.com",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://web.squarecdn.com https://*.squarecdn.com https://squareup.com https://*.squareup.com https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net https://apis.google.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://web.squarecdn.com",
-        "font-src 'self' data: https://fonts.gstatic.com https://web.squarecdn.com",
+        "font-src 'self' data: blob: https://fonts.gstatic.com https://web.squarecdn.com https://squareup.com https://pci-connect.squareup.com",
         "frame-src 'self' https://web.squarecdn.com https://squareup.com https://pci-connect.squareup.com https://calendar.google.com https://www.google.com",
         "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://www.gstatic.com https://calendar.google.com",
-        "connect-src 'self' https://web.squarecdn.com https://squareup.com https://pci-connect.squareup.com https://connect.squareup.com https://maps.googleapis.com https://csp-report.browser-intake-datadoghq.com https://o160250.ingest.sentry.io https://apis.google.com",
+        "connect-src 'self' https://web.squarecdn.com https://squareup.com https://pci-connect.squareup.com https://connect.squareup.com https://maps.googleapis.com https://csp-report.browser-intake-datadoghq.com https://o160250.ingest.sentry.io https://apis.google.com https://*.squarecdn.com https://*.squareup.com",
         "worker-src 'self' blob:",
         "child-src 'self' blob: https://web.squarecdn.com https://squareup.com https://calendar.google.com",
     ]);
