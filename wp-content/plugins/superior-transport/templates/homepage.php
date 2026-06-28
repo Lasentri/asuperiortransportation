@@ -79,10 +79,14 @@ include ST_DIR . 'templates/inc-header.php';
             <label>DROP-OFF LOCATION <?php if($s['require_dropoff']==='1') echo '<span class="req">*</span>';?></label>
             <input type="text" id="st-dropoff" name="dropoff" placeholder="Enter drop-off address" autocomplete="off" spellcheck="false" <?php if($s['require_dropoff']==='1') echo 'required';?>>
           </div>
-          <div id="st-flatrate-hint" style="display:none;margin:-6px 0 10px;">
-            <a href="#" id="st-flatrate-link" style="font-size:.78rem;color:#c8a84b;font-weight:600;text-decoration:none;">🗺️ View Flat Rate Destinations &rarr;</a>
-            <span style="font-size:.72rem;color:rgba(255,255,255,.4);margin-left:6px;">(Available from Houghton · Hancock · CMX)</span>
+          <div id="st-flatrate-hint" style="display:flex;align-items:center;gap:6px;margin:-6px 0 10px;">
+            <span class="st-arrow-bounce" style="color:#f5c518;font-size:1.1rem;display:inline-block;animation:st-bounce 0.8s infinite alternate;">&#9658;</span>
+            <a href="#" id="st-flatrate-link" style="font-size:.82rem;color:#c8a84b;font-weight:700;text-decoration:none;">View Flat Rate Destinations</a>
+            <span style="font-size:.72rem;color:rgba(255,255,255,.4);">(Houghton · Hancock · CMX)</span>
           </div>
+          <style>
+            @keyframes st-bounce{from{transform:translateX(0);}to{transform:translateX(6px);}}
+          </style>
           <div id="st-exact-address-wrap" style="display:none;margin:-4px 0 12px;">
             <label style="display:block;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.6);margin-bottom:5px;font-family:Oswald,sans-serif;">EXACT DROP-OFF ADDRESS <span style="color:#f5c518">*</span></label>
             <div class="st-input-wrap">
