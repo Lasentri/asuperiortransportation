@@ -1,0 +1,63 @@
+/* OneClick Taxi — Frontend Styles */
+/* Colors are injected via PHP as CSS variables */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+    --oct-primary:    #c8a84b;
+    --oct-secondary:  #1a3a1a;
+    --oct-accent:     #f5c518;
+    --oct-background: #0f2a0f;
+    --oct-white:      #ffffff;
+    --oct-muted:      rgba(255,255,255,0.6);
+    --oct-border:     rgba(255,255,255,0.15);
+    --oct-r:          6px;
+}
+
+body.oct-site{font-family:'Open Sans',sans-serif;background:var(--oct-background);color:var(--oct-white);}
+
+/* HERO */
+.oct-hero{background:var(--oct-secondary);padding:60px 20px;text-align:center;}
+.oct-hero h1{font-size:clamp(1.8rem,4vw,2.8rem);color:var(--oct-accent);margin-bottom:10px;}
+.oct-hero p{color:var(--oct-muted);font-size:1rem;}
+.oct-hero-status{display:inline-block;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin:10px 0;}
+.oct-hero-status.open{background:rgba(46,125,50,.4);color:#a5d6a7;border:1px solid #388e3c;}
+.oct-hero-status.closed{background:rgba(183,28,28,.4);color:#ef9a9a;border:1px solid #c62828;}
+
+/* BOOKING */
+.oct-booking{padding:40px 20px;max-width:1200px;margin:0 auto;}
+.oct-booking-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+@media(max-width:900px){.oct-booking-layout{grid-template-columns:1fr;}}
+
+.oct-steps{display:flex;margin-bottom:18px;border-radius:var(--oct-r);overflow:hidden;border:1px solid var(--oct-border);}
+.oct-step{flex:1;text-align:center;padding:10px;font-size:.75rem;font-weight:700;background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);}
+.oct-step.active{background:rgba(255,255,255,.1);color:var(--oct-accent);border-bottom:2px solid var(--oct-primary);}
+.oct-step.done{background:rgba(46,125,50,.2);color:#81c784;}
+
+.oct-form-wrap{background:rgba(255,255,255,.05);border:1px solid var(--oct-border);border-radius:var(--oct-r);padding:24px;}
+.oct-form-group{margin-bottom:14px;}
+.oct-form-group label{display:block;font-size:.7rem;font-weight:700;letter-spacing:.08em;color:var(--oct-muted);margin-bottom:5px;}
+.oct-form-group input,.oct-form-group select,.oct-form-group textarea{width:100%;padding:9px 12px;background:rgba(0,0,0,.3);border:1px solid var(--oct-border);border-radius:var(--oct-r);font-size:.9rem;color:#fff;color-scheme:dark;}
+.oct-form-group input:focus,.oct-form-group select:focus{outline:none;border-color:var(--oct-primary);}
+
+/* Date picker icon */
+.oct-form-group input[type="date"]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:1;filter:invert(1) sepia(1) saturate(5) hue-rotate(175deg);}
+
+.oct-btn-primary{display:inline-block;padding:11px 26px;border-radius:var(--oct-r);background:var(--oct-primary);color:var(--oct-secondary);font-weight:700;border:none;cursor:pointer;font-size:.95rem;}
+.oct-btn-primary:hover{background:var(--oct-accent);}
+.oct-btn-back{display:inline-block;padding:9px 18px;border-radius:var(--oct-r);background:rgba(255,255,255,.08);color:var(--oct-muted);border:1px solid var(--oct-border);cursor:pointer;}
+
+.oct-form-actions{display:flex;gap:10px;margin-top:18px;}
+.oct-fare-box{background:rgba(0,0,0,.3);border:1px solid var(--oct-border);border-radius:var(--oct-r);padding:14px 18px;margin:14px 0;}
+.oct-fare-row{display:flex;justify-content:space-between;color:var(--oct-muted);font-size:.88rem;padding:3px 0;}
+.oct-fare-total{color:var(--oct-accent);font-size:1.1rem;font-weight:700;border-top:1px solid var(--oct-border);margin-top:6px;padding-top:6px;}
+
+.oct-flatrate-hint{display:flex;align-items:center;gap:6px;margin:-4px 0 10px;}
+.oct-flatrate-arrow{color:var(--oct-accent);animation:oct-bounce .8s infinite alternate;}
+@keyframes oct-bounce{from{transform:translateX(0);}to{transform:translateX(6px);}}
+.oct-flatrate-link{font-size:.82rem;color:var(--oct-primary);font-weight:700;text-decoration:none;}
+
+#oct-map{height:500px;width:100%;border-radius:var(--oct-r);}
+
+/* FOOTER */
+.oct-footer{background:rgba(0,0,0,.4);color:var(--oct-muted);padding:30px 20px;text-align:center;font-size:.82rem;border-top:1px solid var(--oct-border);}
+.oct-footer a{color:var(--oct-primary);text-decoration:none;}

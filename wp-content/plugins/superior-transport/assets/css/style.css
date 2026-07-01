@@ -79,7 +79,6 @@ a:hover { color:var(--yel); text-decoration:underline; }
 .st-form-group { margin-bottom:14px; }
 .st-form-group label { display:block; font-size:.68rem; font-weight:700; letter-spacing:.1em; color:rgba(255,255,255,.6); margin-bottom:5px; font-family:'Oswald',sans-serif; }
 .st-form-group input,.st-form-group select,.st-form-group textarea { width:100%; padding:9px 12px; background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.15); border-radius:var(--r); font-size:.9rem; color:#fff; transition:border-color .15s; color-scheme:dark; }
-.st-form-group input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(1); cursor:pointer; }
 .st-form-group input::placeholder { color:rgba(255,255,255,.3); }
 .st-form-group select option { background:#1a3a1a; color:#fff; }
 .st-form-group input:focus,.st-form-group select:focus,.st-form-group textarea:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 2px rgba(200,168,75,.2); }
@@ -90,6 +89,21 @@ a:hover { color:var(--yel); text-decoration:underline; }
 .st-locate-btn { position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:1rem; color:var(--gold); }
 .st-form-actions { display:flex; gap:10px; align-items:center; margin-top:18px; }
 .st-form-error { background:rgba(198,40,40,.2); border:1px solid rgba(198,40,40,.4); border-radius:4px; padding:9px 13px; font-size:.82rem; color:#ef9a9a; margin-top:10px; }
+
+/* DATE PICKER - Google Calendar style icon */
+.st-form-group input[type="date"] { padding-right: 36px; }
+.st-form-group input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='4' fill='%231a73e8'/%3E%3Crect x='0' y='14' width='12' height='10' rx='0' fill='%2334a853'/%3E%3Crect x='12' y='14' width='12' height='10' rx='0' fill='%23fbbc04'/%3E%3Crect x='12' y='14' width='12' height='5' rx='0' fill='%23fbbc04'/%3E%3Crect x='0' y='19' width='12' height='5' rx='0' fill='%2334a853'/%3E%3Crect x='12' y='19' width='12' height='5' rx='0' fill='%23ea4335'/%3E%3Crect x='0' y='14' width='24' height='5' rx='0' fill='%23fff' opacity='.08'/%3E%3Ctext x='12' y='12' text-anchor='middle' font-family='Arial,sans-serif' font-size='10' font-weight='bold' fill='white'%3E31%3C/text%3E%3Crect x='3' y='3' width='4' height='5' rx='1' fill='%23ea4335'/%3E%3Crect x='17' y='3' width='4' height='5' rx='1' fill='%23ea4335'/%3E%3C/svg%3E");
+  background-size: 22px 22px;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  filter: none;
+}
 
 .st-av-note { background:rgba(0,0,0,.2); border-left:3px solid var(--gold); border-radius:4px; padding:10px 14px; font-size:.8rem; line-height:1.6; margin:14px 0; color:rgba(255,255,255,.6); }
 .st-av-note a { color:var(--gold); font-weight:600; }

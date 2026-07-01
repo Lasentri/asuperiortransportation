@@ -3,12 +3,16 @@
  * Plugin Name: A Superior Transportation - Full Site v3.0
  * Plugin URI:  https://asuperiortransportation.com
  * Description: Complete website - Homepage booking, Suggested Places, Gas Tracker, Calendar, Square Payments.
- * Version:     3.0.0
+ * Version:     3.0.6
  * Author:      A Superior Transportation
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'ST_VERSION', '3.0.0' );
+/* Force WordPress mail to send from asuperiortransportation.com domain */
+add_filter( 'wp_mail_from',      function() { return 'noreply@asuperiortransportation.com'; } );
+add_filter( 'wp_mail_from_name', function() { return 'A Superior Transportation'; } );
+
+define( 'ST_VERSION', '3.0.6' );
 define( 'ST_DIR',     plugin_dir_path( __FILE__ ) );
 define( 'ST_URL',     plugin_dir_url( __FILE__ ) );
 
@@ -45,4 +49,28 @@ function st_enqueue_assets() {
         'perMile'      => $s['per_mile'] ?? '2.50',
         'baseRate'     => $s['base_rate'] ?? '3.00',
     ]);
+}
+
+/**
+ * CSP covering Square Web Payments SDK + Google Calendar embed + Google Maps
+ */
+add_filter( 'wp_headers', 'st_csp_headers', 99 );
+function st_csp_headers( $headers ) {
+    unset( $headers['Content-Security-Policy'] );
+    unset( $headers['content-security-policy'] );
+
+    $csp = implode( '; ', [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://web.squarecdn.com https://*.squarecdn.com https://squareup.com https://*.squareup.com https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net https://apis.google.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.squarecdn.com https://*.squareup.com",
+        "font-src 'self' data: blob: https://fonts.gstatic.com https://*.squarecdn.com https://*.squareup.com",
+        "frame-src 'self' https://*.squarecdn.com https://*.squareup.com https://calendar.google.com https://www.google.com",
+        "img-src 'self' data: blob: https:",
+        "connect-src 'self' https://web.squarecdn.com https://squareup.com https://pci-connect.squareup.com https://connect.squareup.com https://maps.googleapis.com https://csp-report.browser-intake-datadoghq.com https://o160250.ingest.sentry.io https://apis.google.com https://*.squarecdn.com https://*.squareup.com",
+        "worker-src 'self' blob:",
+        "child-src 'self' blob: https://*.squarecdn.com https://*.squareup.com https://calendar.google.com",
+    ]);
+
+    $headers['Content-Security-Policy'] = $csp;
+    return $headers;
 }

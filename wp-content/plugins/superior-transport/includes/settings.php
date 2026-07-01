@@ -25,6 +25,79 @@ function st_get_settings() {
     ]);
 }
 
+/* -------------------------------------------------------
+   FLAT RATES
+------------------------------------------------------- */
+function st_get_flat_rates() {
+    return get_option('st_flat_rates', [
+        'north_bound' => [
+            ['name'=>'Lake Linden',                          'address'=>'Lake Linden, MI',              'price'=>25.00,  'active'=>1],
+            ['name'=>'Laurium',                              'address'=>'Laurium, MI',                  'price'=>30.00,  'active'=>1],
+            ['name'=>'Calumet (Downtown)',                   'address'=>'Calumet, MI 49913',            'price'=>30.00,  'active'=>1],
+            ['name'=>'Calumet Visitor Center / Agassiz Park','address'=>'Calumet, MI 49913',            'price'=>30.00,  'active'=>1],
+            ['name'=>'Swedetown Trails / Recreation Area',   'address'=>'Swedetown Recreational Area, Calumet, MI 49913',    'price'=>31.00,  'active'=>1],
+            ['name'=>'Mohawk',                               'address'=>'Mohawk, MI',                   'price'=>55.00,  'active'=>1],
+            ['name'=>'Ahmeek',                               'address'=>'Ahmeek, MI',                   'price'=>65.00,  'active'=>1],
+            ['name'=>'Allouez',                              'address'=>'Allouez, MI',                  'price'=>75.00,  'active'=>1],
+            ['name'=>'Centennial Heights',                   'address'=>'Centennial Heights, MI',       'price'=>35.00,  'active'=>1],
+            ['name'=>'Gay / Eagle River Junction',           'address'=>'Gay, MI',                      'price'=>119.00, 'active'=>1],
+            ['name'=>'Phoenix',                              'address'=>'Phoenix, MI',                  'price'=>127.50, 'active'=>1],
+            ['name'=>'Keweenaw County Courthouse (Eagle River)','address'=>'Eagle River, MI',           'price'=>131.75, 'active'=>1],
+            ['name'=>'Delaware Copper Mine',                 'address'=>'Delaware, MI',                 'price'=>140.25, 'active'=>1],
+            ['name'=>'Copper Harbor (Downtown)',             'address'=>'Copper Harbor, MI',            'price'=>199.75, 'active'=>1],
+            ['name'=>'Fort Wilkins State Park',              'address'=>'Copper Harbor, MI 49918',      'price'=>201.88, 'active'=>1],
+            ['name'=>'Brockway Mountain Drive',              'address'=>'Brockway Mountain Dr, Copper Harbor, MI','price'=>195.50,'active'=>1],
+        ],
+        'west_bound' => [
+            ['name'=>'South Range',                          'address'=>'South Range, MI 49963',                                       'price'=>25.83,  'active'=>1],
+            ['name'=>'Atlantic Mine',                        'address'=>'Atlantic Mine, MI 49905',                                     'price'=>14.76,  'active'=>1],
+            ['name'=>'Painesdale',                           'address'=>'Painesdale, MI 49955',                                        'price'=>29.52,  'active'=>1],
+            ['name'=>'Adams Township / Bootjack',            'address'=>'Bootjack, MI 49911',                                          'price'=>44.28,  'active'=>1],
+            ['name'=>'Trimountain',                          'address'=>'Trimountain, MI 49960',                                       'price'=>44.28,  'active'=>1],
+            ['name'=>'Twin Lakes (Village)',                 'address'=>'Twin Lakes, MI 49962',                                        'price'=>95.94,  'active'=>1],
+            ['name'=>'Twin Lakes State Park',                'address'=>'32650 N Hwy M-26, Toivola, MI 49965',                        'price'=>95.94,  'active'=>1],
+            ['name'=>'Toivola',                              'address'=>'Toivola, MI 49965',                                           'price'=>55.35,  'active'=>1],
+            ['name'=>"Krupp's Resort",                       'address'=>'32170 Emily Lake Rd, Toivola, MI 49965',                     'price'=>92.25,  'active'=>1],
+            ['name'=>'Greenland',                            'address'=>'Greenland, MI 49929',                                         'price'=>129.15, 'active'=>1],
+            ['name'=>'Mass City',                            'address'=>'Mass City, MI 49948',                                         'price'=>147.60, 'active'=>1],
+            ['name'=>'Bergland',                             'address'=>'Bergland, MI 49910',                                          'price'=>306.27, 'active'=>1],
+            ['name'=>'Lake Gogebic State Park',              'address'=>'Lake Gogebic State Park, Marenisco, MI',                     'price'=>317.34, 'active'=>1],
+            ['name'=>'Ewen',                                 'address'=>'Ewen, MI 49925',                                             'price'=>239.85, 'active'=>1],
+            ['name'=>'Trout Creek',                          'address'=>'Trout Creek, MI 49967',                                      'price'=>221.40, 'active'=>1],
+            ['name'=>'Rockland',                             'address'=>'Rockland, MI 49960',                                         'price'=>177.12, 'active'=>1],
+            ['name'=>'Victoria Dam',                         'address'=>'Victoria Dam Rd, Rockland, MI 49960',                        'price'=>184.50, 'active'=>1],
+            ['name'=>'Ontonagon (Downtown)',                 'address'=>'Ontonagon, MI 49953',                                        'price'=>191.88, 'active'=>1],
+            ['name'=>'Ontonagon Lighthouse',                 'address'=>'Ontonagon Lighthouse, Ontonagon, MI 49953',                  'price'=>191.88, 'active'=>1],
+            ['name'=>'Porcupine Mountains Wilderness SP',    'address'=>'Porcupine Mountains Wilderness State Park, Ontonagon, MI',  'price'=>258.30, 'active'=>1],
+            ['name'=>'Lake of the Clouds',                   'address'=>'Lake of the Clouds, Ontonagon County, MI',                  'price'=>265.68, 'active'=>1],
+        ],
+    ]);
+}
+
+/* Return flat rates as JSON for the booking form */
+add_action('wp_ajax_st_get_flat_rates',        'st_ajax_get_flat_rates');
+add_action('wp_ajax_nopriv_st_get_flat_rates', 'st_ajax_get_flat_rates');
+function st_ajax_get_flat_rates() {
+    $rates = st_get_flat_rates();
+    $out = [];
+    foreach ($rates as $block => $destinations) {
+        foreach ($destinations as $d) {
+            if (!empty($d['active'])) {
+                $out[] = [
+                    'name'    => $d['name'],
+                    'address' => $d['address'],
+                    'price'   => floatval($d['price']),
+                    'block'   => $block,
+                ];
+            }
+        }
+    }
+    wp_send_json_success($out);
+}
+
+/* -------------------------------------------------------
+   COUPONS
+------------------------------------------------------- */
 function st_get_coupons() { return get_option('st_coupons', []); }
 
 function st_validate_coupon( $code, $fare ) {
@@ -60,13 +133,20 @@ function st_increment_coupon_use($code) {
     update_option('st_coupons', $coupons);
 }
 
+/* -------------------------------------------------------
+   ADMIN MENU
+------------------------------------------------------- */
 add_action('admin_menu', function(){
     add_menu_page('Superior Transport','Superior Transport','manage_options','st-transport','st_settings_page','dashicons-car',30);
     add_submenu_page('st-transport','General','General','manage_options','st-transport','st_settings_page');
     add_submenu_page('st-transport','Form Fields','Form Fields','manage_options','st-transport-fields','st_fields_page');
+    add_submenu_page('st-transport','Flat Rates','🗺️ Flat Rates','manage_options','st-transport-flatrates','st_flat_rates_page');
     add_submenu_page('st-transport','Coupons','Coupons','manage_options','st-transport-coupons','st_coupons_page');
 });
 
+/* -------------------------------------------------------
+   GENERAL SETTINGS PAGE
+------------------------------------------------------- */
 function st_settings_page(){
     if(isset($_POST['st_save_settings'])){
         check_admin_referer('st_save_settings');
@@ -109,6 +189,9 @@ function st_settings_page(){
     <?php
 }
 
+/* -------------------------------------------------------
+   FORM FIELDS PAGE
+------------------------------------------------------- */
 function st_fields_page(){
     if(isset($_POST['st_save_settings'])){
         check_admin_referer('st_save_settings');
@@ -141,6 +224,145 @@ function st_fields_page(){
     <?php
 }
 
+/* -------------------------------------------------------
+   FLAT RATES PAGE
+------------------------------------------------------- */
+function st_flat_rates_page(){
+    $rates = st_get_flat_rates();
+
+    /* Save */
+    if(isset($_POST['st_save_flat_rates'])){
+        check_admin_referer('st_save_flat_rates');
+        $blocks = ['north_bound', 'west_bound'];
+        $new_rates = [];
+        foreach($blocks as $block){
+            $names    = $_POST[$block.'_name']    ?? [];
+            $addrs    = $_POST[$block.'_address'] ?? [];
+            $prices   = $_POST[$block.'_price']   ?? [];
+            $actives  = $_POST[$block.'_active']  ?? [];
+            $new_rates[$block] = [];
+            foreach($names as $i => $name){
+                if(empty(trim($name))) continue;
+                $new_rates[$block][] = [
+                    'name'    => sanitize_text_field($name),
+                    'address' => sanitize_text_field($addrs[$i] ?? ''),
+                    'price'   => floatval($prices[$i] ?? 0),
+                    'active'  => isset($actives[$i]) ? 1 : 0,
+                ];
+            }
+        }
+        update_option('st_flat_rates', $new_rates);
+        $rates = $new_rates;
+        echo '<div class="notice notice-success"><p>Flat rates saved.</p></div>';
+    }
+
+    /* Delete */
+    if(isset($_GET['delete_fr']) && isset($_GET['block']) && check_admin_referer('st_delete_fr')){
+        $block = sanitize_key($_GET['block']);
+        $idx   = intval($_GET['delete_fr']);
+        if(isset($rates[$block][$idx])){ array_splice($rates[$block], $idx, 1); update_option('st_flat_rates',$rates); }
+        echo '<div class="notice notice-success"><p>Destination removed.</p></div>';
+    }
+
+    $base_url = admin_url('admin.php?page=st-transport-flatrates');
+    $nb = $rates['north_bound'] ?? [];
+    ?>
+    <div class="wrap">
+    <h1>🗺️ Flat Rate Destinations</h1>
+
+    <div style="background:#fff3cd;border-left:4px solid #c8a84b;padding:14px 18px;margin-bottom:20px;border-radius:4px;max-width:700px;">
+        <strong>📋 Pricing Policy — North Bound Routes:</strong><br>
+        Flat rates listed below apply to <strong>1–2 passengers</strong>.<br>
+        <strong>3 or more passengers</strong> are charged the flat rate + <strong>40% surcharge</strong> (automatically calculated at booking).<br>
+        Rates are one-way from Houghton/Hancock unless otherwise noted.
+    </div>
+
+    <form method="post"><?php wp_nonce_field('st_save_flat_rates'); ?>
+
+    <h2 style="border-bottom:2px solid #1a3a1a;padding-bottom:6px;color:#1a3a1a;">🧭 North Bound Block (Houghton → Copper Harbor via US-41)</h2>
+
+    <table class="wp-list-table widefat fixed" style="max-width:900px">
+        <thead>
+            <tr style="background:#1a3a1a;color:#fff">
+                <th style="color:#fff;width:28%">Destination Name</th>
+                <th style="color:#fff;width:30%">Address / Search Term</th>
+                <th style="color:#fff;width:12%">Base Rate (1-2 pax)</th>
+                <th style="color:#fff;width:14%">3+ pax (+40%)</th>
+                <th style="color:#fff;width:8%">Active</th>
+                <th style="color:#fff;width:8%">Remove</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach($nb as $i => $d): $plus40 = number_format($d['price'] * 1.40, 2); ?>
+        <tr style="background:<?php echo $i%2?'#f9f9f9':'#fff';?>">
+            <td><input type="text" name="north_bound_name[]" value="<?php echo esc_attr($d['name']);?>" style="width:98%"></td>
+            <td><input type="text" name="north_bound_address[]" value="<?php echo esc_attr($d['address']);?>" style="width:98%"></td>
+            <td><div style="display:flex;align-items:center;gap:4px">$<input type="number" step="0.01" min="0" name="north_bound_price[]" value="<?php echo esc_attr($d['price']);?>" style="width:75px"></div></td>
+            <td style="color:#888;font-style:italic">$<?php echo $plus40;?></td>
+            <td style="text-align:center"><input type="checkbox" name="north_bound_active[<?php echo $i;?>]" <?php checked($d['active'],1);?>></td>
+            <td style="text-align:center"><a href="<?php echo wp_nonce_url($base_url.'&delete_fr='.$i.'&block=north_bound','st_delete_fr');?>" onclick="return confirm('Remove this destination?')" style="color:red;font-weight:700">✕</a></td>
+        </tr>
+        <?php endforeach; ?>
+        <!-- Add new row -->
+        <tr style="background:#f0fff0;border-top:2px dashed #2e7d32">
+            <td><input type="text" name="north_bound_name[]" placeholder="New destination name" style="width:98%"></td>
+            <td><input type="text" name="north_bound_address[]" placeholder="Address or search term" style="width:98%"></td>
+            <td><div style="display:flex;align-items:center;gap:4px">$<input type="number" step="0.01" min="0" name="north_bound_price[]" value="" style="width:75px"></div></td>
+            <td style="color:#aaa;font-style:italic">auto</td>
+            <td style="text-align:center"><input type="checkbox" name="north_bound_active[<?php echo count($nb);?>]" checked></td>
+            <td></td>
+        </tr>
+        </tbody>
+    </table>
+
+
+    <h2 style="border-bottom:2px solid #0a1a3a;padding-bottom:6px;color:#0a1a3a;margin-top:32px;">🧭 West Bound Block (Houghton → Lake of the Clouds via M-26 / US-45)</h2>
+    <?php $wb = $rates['west_bound'] ?? []; ?>
+    <table class="wp-list-table widefat fixed" style="max-width:900px">
+        <thead>
+            <tr style="background:#0a1a3a;color:#fff">
+                <th style="color:#fff;width:28%">Destination Name</th>
+                <th style="color:#fff;width:30%">Address / Search Term</th>
+                <th style="color:#fff;width:12%">Base Rate (1-2 pax)</th>
+                <th style="color:#fff;width:14%">3+ pax (+40%)</th>
+                <th style="color:#fff;width:8%">Active</th>
+                <th style="color:#fff;width:8%">Remove</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach($wb as $i => $d): $plus40 = number_format($d['price'] * 1.40, 2); ?>
+        <tr style="background:<?php echo $i%2?'#f9f9f9':'#fff';?>">
+            <td><input type="text" name="west_bound_name[]" value="<?php echo esc_attr($d['name']);?>" style="width:98%"></td>
+            <td><input type="text" name="west_bound_address[]" value="<?php echo esc_attr($d['address']);?>" style="width:98%"></td>
+            <td><div style="display:flex;align-items:center;gap:4px">$<input type="number" step="0.01" min="0" name="west_bound_price[]" value="<?php echo esc_attr($d['price']);?>" style="width:75px"></div></td>
+            <td style="color:#888;font-style:italic">$<?php echo $plus40;?></td>
+            <td style="text-align:center"><input type="checkbox" name="west_bound_active[<?php echo $i;?>]" <?php checked($d['active'],1);?>></td>
+            <td style="text-align:center"><a href="<?php echo wp_nonce_url($base_url.'&delete_fr='.$i.'&block=west_bound','st_delete_fr');?>" onclick="return confirm('Remove this destination?')" style="color:red;font-weight:700">✕</a></td>
+        </tr>
+        <?php endforeach; ?>
+        <tr style="background:#f0fff0;border-top:2px dashed #0a1a3a">
+            <td><input type="text" name="west_bound_name[]" placeholder="New destination name" style="width:98%"></td>
+            <td><input type="text" name="west_bound_address[]" placeholder="Address or search term" style="width:98%"></td>
+            <td><div style="display:flex;align-items:center;gap:4px">$<input type="number" step="0.01" min="0" name="west_bound_price[]" value="" style="width:75px"></div></td>
+            <td style="color:#aaa;font-style:italic">auto</td>
+            <td style="text-align:center"><input type="checkbox" name="west_bound_active[<?php echo count($wb);?>]" checked></td>
+            <td></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <p style="margin-top:16px">
+        <input type="submit" name="st_save_flat_rates" class="button button-primary" value="💾 Save Flat Rates">
+        <span style="margin-left:12px;color:#666;font-size:.85rem">The 3+ passenger rate is calculated automatically — no need to enter it separately.</span>
+    </p>
+    </form>
+    </div>
+    <?php
+}
+
+/* -------------------------------------------------------
+   COUPONS PAGE
+------------------------------------------------------- */
 function st_coupons_page(){
     if(isset($_POST['st_save_coupon'])){
         check_admin_referer('st_save_coupon');
@@ -192,3 +414,4 @@ function st_coupons_page(){
     <?php endif; ?></div>
     <?php
 }
+
