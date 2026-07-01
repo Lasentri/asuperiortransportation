@@ -453,7 +453,7 @@ function stFilterTimeSlots(){
         // If currently selected slot became conflicted, deselect it
         if(conflict&&opt.selected){sel.value='';hasConflict=true;}
     });
-    if(hasConflict) stShowConflictPopup();
+    var n=document.getElementById('st-time-notice');if(hasConflict){if(n)n.style.display='block';else stShowConflictPopup();}else if(n){n.style.display='none';}
 }
 
 /* -------------------------------------------------------
@@ -476,6 +476,7 @@ function stShowConflictPopup(){
     document.getElementById('st-conflict-ok').addEventListener('click',function(){popup.remove();var s=document.getElementById('st-time');if(s) s.focus();});
 }
 
+function stOpenAvailabilityPopup(){var de=document.getElementById('st-date');if(!de||!de.value){var n=document.getElementById('st-time-notice');if(n){n.textContent='Please select a date first.';n.style.display='block';}return;}var ex=document.getElementById('st-avail-popup');if(ex)ex.remove();var sel=document.getElementById('st-time'),opts=sel?sel.querySelectorAll('option'):[],sb='';opts.forEach(function(o){if(!o.value)return;if(o.disabled)sb+='<button disabled style="background:#2a0808;color:#886;border:1px solid #5a2020;border-radius:5px;padding:7px 11px;cursor:not-allowed;font-size:.78rem;">⛔ '+o.text+'</button>';else sb+='<button data-val="'+o.value+'" class="st-avail-slot" style="background:#0a2416;color:#81c995;border:1px solid #2e7d52;border-radius:5px;padding:7px 11px;cursor:pointer;font-size:.78rem;">✅ '+o.text+'</button>';});if(!sb)sb='<p style="color:#aaa;">Select a date first.</p>';var d=new Date(de.value+'T12:00:00'),dl=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});var pp=document.createElement('div');pp.id='st-avail-popup';pp.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:99998;display:flex;align-items:center;justify-content:center;padding:16px;';pp.innerHTML='<div style="background:#111;border:2px solid #333;border-radius:12px;padding:22px 24px;max-width:480px;width:100%;max-height:82vh;overflow-y:auto;"><h3 style="color:#f0c040;font-family:Oswald,sans-serif;margin:0 0 4px;text-align:center;">📅 Choose a Time Slot</h3><p style="color:rgba(255,255,255,.55);margin:0 0 14px;font-size:.8rem;text-align:center;">'+dl+'</p><div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;">'+sb+'</div><div style="margin-top:18px;text-align:center;"><button id="st-avail-close" style="background:#333;border:1px solid #555;color:#ccc;padding:7px 22px;border-radius:5px;cursor:pointer;">Close</button></div></div>';document.body.appendChild(pp);pp.querySelectorAll('.st-avail-slot').forEach(function(b){b.addEventListener('mouseover',function(){this.style.background='#1a4a2a';});b.addEventListener('mouseout',function(){this.style.background='#0a2416';});b.addEventListener('click',function(){var s=document.getElementById('st-time');if(s){s.value=this.getAttribute('data-val');s.dispatchEvent(new Event('change'));}pp.remove();});});document.getElementById('st-avail-close').addEventListener('click',function(){pp.remove();});pp.addEventListener('click',function(e){if(e.target===pp)pp.remove();});}
 document.addEventListener('DOMContentLoaded',function(){
     var calBtn=document.getElementById('st-show-calendar'),calWrap=document.getElementById('st-cal-wrap');
     if(calBtn&&calWrap){calBtn.addEventListener('click',function(e){e.preventDefault();calWrap.style.display=calWrap.style.display==='none'?'block':'none';calBtn.textContent=calWrap.style.display==='none'?'View open times below':'Hide calendar';});}
@@ -490,18 +491,11 @@ document.addEventListener('DOMContentLoaded',function(){
         });
     }
 
-    // Warn immediately if user picks a conflicting time slot
     var timeField=document.getElementById('st-time');
     if(timeField){
-        timeField.addEventListener('change',function(){
-            if(!this.value) return;
-            var slotStart=stHHMMtoMin(this.value);
-            var slotEnd=slotStart+stRideMins;
-            var conflict=stBusyWindows.some(function(b){
-                return slotStart < stHHMMtoMin(b.end) && slotEnd > stHHMMtoMin(b.start);
-            });
-            if(conflict){this.value='';stShowConflictPopup();}
-        });
+        var tn=document.createElement('p');tn.id='st-time-notice';tn.style.cssText='display:none;color:#ef9a9a;background:rgba(229,57,53,.15);border:1px solid #e53935;border-radius:5px;padding:8px 12px;margin-top:6px;font-size:.83rem;';tn.innerHTML='⛔ <strong>Time unavailable</strong> — that slot is already booked.';timeField.parentNode.insertBefore(tn,timeField.nextSibling);
+        var ab=document.createElement('button');ab.type='button';ab.innerHTML='📅 Check Availability';ab.style.cssText='display:inline-block;margin-top:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:.78rem;';ab.addEventListener('click',stOpenAvailabilityPopup);timeField.parentNode.appendChild(ab);
+        timeField.addEventListener('change',function(){var n=document.getElementById('st-time-notice');if(!this.value){if(n)n.style.display='none';return;}var s=stHHMMtoMin(this.value),e=s+stRideMins;var cx=stBusyWindows.some(function(b){return s<stHHMMtoMin(b.end)&&e>stHHMMtoMin(b.start);});if(cx){this.value='';if(n)n.style.display='block';else stShowConflictPopup();}else{if(n)n.style.display='none';}});
     }
 
     document.querySelectorAll('input[name="payment_method"]').forEach(function(r){r.addEventListener('change',function(){var cw=document.getElementById('st-card-wrap');if(cw) cw.style.display=this.value==='card'?'block':'none';});});
@@ -525,7 +519,8 @@ function stSubmitBooking(paymentId){
     fd.append('time',(document.getElementById('st-time')||{}).value||'');
     fd.append('passengers',(document.getElementById('st-passengers')||{}).value||1);
     fd.append('notes',(document.getElementById('st-notes')||{}).value||'');
-    fd.append('distance',stCalcMiles.toFixed(2));
+    var d2s=stCalcMiles>0?stCalcMiles:parseFloat((window.ST||{}).flatMiles||5);
+    fd.append('distance',d2s.toFixed(2));
     fd.append('fare',stFinalFare.toFixed(2));
     fd.append('coupon',(document.getElementById('st-coupon')||{}).value||'');
     fd.append('payment_id',paymentId);
