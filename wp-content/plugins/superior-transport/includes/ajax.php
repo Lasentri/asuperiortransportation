@@ -37,12 +37,14 @@ function st_gcal_get_access_token() {
 /* -------------------------------------------------------
    CALENDAR EVENT — NOW WITH FULL PICKUP/DROPOFF DETAILS
 ------------------------------------------------------- */
-function st_gcal_create_event($name, $phone, $pickup, $dropoff, $date, $time, $fare, $notes, $passengers = 1, $email = '') {
+function st_gcal_create_event($name, $phone, $pickup, $dropoff, $date, $time, $fare, $notes, $passengers = 1, $email = '', $miles = 0) {
     $access_token = st_gcal_get_access_token() ?: st_gcal_refresh_access_token();
     if (!$access_token) return false;
 
     $dt       = $date && $time ? $date.'T'.$time.':00' : date('Y-m-d\TH:i:s');
-    $end      = date('Y-m-d\TH:i:s', strtotime($dt) + 3600);
+    // 3 min/mile rule; minimum 30 min
+    $duration_min = $miles > 0 ? max(30, (int) ceil($miles * 3)) : 60;
+    $end      = date('Y-m-d\TH:i:s', strtotime($dt) + ($duration_min * 60));
     $date_fmt = date('l, F j, Y', strtotime($date ?: 'today'));
     $time_fmt = $time ? date('g:i A', strtotime($dt)) : '—';
 
@@ -245,10 +247,68 @@ function st_book_ride_handler(){
     }
     $wpdb->insert($t, array_intersect_key($data, array_flip($cols)));
 
-    // Fire calendar with full details
-    st_gcal_create_event($name, $phone, $pickup, $dropoff, $date, $time, $fare, $notes, $passengers, $email);
+    // Fire calendar with full details + distance for 3-min/mile duration
+    st_gcal_create_event($name, $phone, $pickup, $dropoff, $date, $time, $fare, $notes, $passengers, $email, $distance);
 
     wp_send_json_success(['message' => "Booking confirmed. We will call {$phone} shortly to confirm your ride."]);
+}
+
+/* -------------------------------------------------------
+   AVAILABILITY CHECK — returns busy windows for a date
+------------------------------------------------------- */
+add_action('wp_ajax_st_check_availability',        'st_check_availability_handler');
+add_action('wp_ajax_nopriv_st_check_availability', 'st_check_availability_handler');
+function st_check_availability_handler() {
+    check_ajax_referer('st_nonce', 'nonce');
+
+    $date = sanitize_text_field($_POST['date'] ?? '');
+    if (!$date || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        wp_send_json_error(['message' => 'Invalid date.']);
+    }
+
+    $access_token = st_gcal_get_access_token() ?: st_gcal_refresh_access_token();
+    if (!$access_token) {
+        // No calendar connected — return empty (no blocks)
+        wp_send_json_success(['busy' => []]);
+    }
+
+    $time_min = $date . 'T00:00:00-05:00'; // Eastern
+    $time_max = $date . 'T23:59:59-05:00';
+
+    $url = add_query_arg([
+        'timeMin'      => $time_min,
+        'timeMax'      => $time_max,
+        'singleEvents' => 'true',
+        'orderBy'      => 'startTime',
+    ], 'https://www.googleapis.com/calendar/v3/calendars/' . urlencode(ST_GCAL_CALENDAR_ID) . '/events');
+
+    $response = wp_remote_get($url, [
+        'headers' => ['Authorization' => 'Bearer ' . $access_token],
+        'timeout' => 15,
+    ]);
+
+    if (is_wp_error($response)) {
+        wp_send_json_success(['busy' => []]); // Fail open
+    }
+
+    $data = json_decode(wp_remote_retrieve_body($response), true);
+    $busy = [];
+
+    if (!empty($data['items'])) {
+        foreach ($data['items'] as $event) {
+            $start = $event['start']['dateTime'] ?? '';
+            $end   = $event['end']['dateTime']   ?? '';
+            if ($start && $end) {
+                $busy[] = [
+                    'start' => date('H:i', strtotime($start)),
+                    'end'   => date('H:i', strtotime($end)),
+                    'title' => $event['summary'] ?? 'Booked',
+                ];
+            }
+        }
+    }
+
+    wp_send_json_success(['busy' => $busy]);
 }
 
 /* -------------------------------------------------------

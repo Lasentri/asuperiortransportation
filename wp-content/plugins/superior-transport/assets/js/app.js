@@ -1,8 +1,10 @@
-/* A Superior Transportation - app.js v3.0 */
+/* A Superior Transportation - app.js v3.1 */
 'use strict';
 var stMap,stPickupAC,stDropoffAC,stPickupMarker,stDropoffMarker,stRouteRenderer;
 var stPickupLatLng=null,stDropoffLatLng=null,stActiveField='pickup';
 var stCalcFare=0,stCalcMiles=0,stDiscountAmt=0,stFinalFare=0;
+var stBusyWindows=[];   // [{start:'HH:MM', end:'HH:MM', title:'...'}]
+var stRideMins=60;      // estimated ride duration in minutes (updated after route calc)
 var squareCard=null,squarePayments=null;
 
 function stInitMap(){
@@ -81,11 +83,15 @@ function stUpdateFare(miles){
     var flatMiles=parseFloat(s.flatMiles||5),flatPrice=parseFloat(s.flatPrice||10),perMile=parseFloat(s.perMile||2.50),baseRate=parseFloat(s.baseRate||3.00);
     var fare=miles<=flatMiles?flatPrice:baseRate+(miles*perMile);
     stCalcFare=fare;stFinalFare=fare;stDiscountAmt=0;
+    // 3 min/mile rule, minimum 30 min
+    stRideMins=Math.max(30,Math.ceil(miles*3));
     var milesEl=document.getElementById('st-fare-miles'),amountEl=document.getElementById('st-fare-amount'),fareBox=document.getElementById('st-fare-box');
     if(milesEl) milesEl.textContent=miles.toFixed(1)+' mi';
     if(amountEl) amountEl.textContent='$'+fare.toFixed(2);
     if(fareBox) fareBox.style.display='block';
     stSyncTotals();
+    // Re-filter time slots now that we know the actual ride duration
+    stFilterTimeSlots();
 }
 
 function stSyncTotals(){
@@ -160,9 +166,104 @@ async function stShowPaymentPopup(){
 }
 function stInitSquare(){}
 
+/* -------------------------------------------------------
+   AVAILABILITY: fetch busy windows for a date
+------------------------------------------------------- */
+function stFetchAvailability(date){
+    if(!date||!window.ST) return;
+    var fd=new FormData();
+    fd.append('action','st_check_availability');
+    fd.append('nonce',ST.nonce);
+    fd.append('date',date);
+    fetch(ST.ajax,{method:'POST',body:fd})
+        .then(function(r){return r.json();})
+        .then(function(d){
+            if(d.success){
+                stBusyWindows=d.data.busy||[];
+                stFilterTimeSlots();
+            }
+        })
+        .catch(function(){/* fail silently */});
+}
+
+/* -------------------------------------------------------
+   TIME SLOTS: disable options that conflict with busy windows
+------------------------------------------------------- */
+function stHHMMtoMin(hhmm){
+    var parts=hhmm.split(':');
+    return parseInt(parts[0],10)*60+parseInt(parts[1],10);
+}
+function stFilterTimeSlots(){
+    var sel=document.getElementById('st-time');
+    if(!sel) return;
+    var opts=sel.querySelectorAll('option');
+    var hasConflict=false;
+    opts.forEach(function(opt){
+        if(!opt.value) return; // skip placeholder
+        var slotStart=stHHMMtoMin(opt.value);
+        var slotEnd=slotStart+stRideMins;
+        var conflict=stBusyWindows.some(function(b){
+            var bStart=stHHMMtoMin(b.start);
+            var bEnd=stHHMMtoMin(b.end);
+            // Overlap: slot starts before busy ends AND slot ends after busy starts
+            return slotStart < bEnd && slotEnd > bStart;
+        });
+        opt.disabled=conflict;
+        opt.style.color=conflict?'#aaa':'';
+        opt.title=conflict?'⛔ This time is already booked':'';
+        // If currently selected slot became conflicted, deselect it
+        if(conflict&&opt.selected){sel.value='';hasConflict=true;}
+    });
+    if(hasConflict) stShowConflictPopup();
+}
+
+/* -------------------------------------------------------
+   CONFLICT POPUP
+------------------------------------------------------- */
+function stShowConflictPopup(){
+    var existing=document.getElementById('st-conflict-popup');
+    if(existing) existing.remove();
+    var popup=document.createElement('div');
+    popup.id='st-conflict-popup';
+    popup.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    popup.innerHTML='<div style="background:#1a0000;border:2px solid #e53935;border-radius:10px;padding:28px 32px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.7);">'
+        +'<div style="font-size:2rem;margin-bottom:12px">🚫</div>'
+        +'<h3 style="color:#ef9a9a;font-family:Oswald,sans-serif;margin:0 0 10px;font-size:1.25rem;letter-spacing:.05em">TIME SLOT UNAVAILABLE</h3>'
+        +'<p style="color:rgba(255,255,255,.8);margin:0 0 20px;line-height:1.5">That time is already booked. Please choose a different time slot — a conflicting schedule is already in place.</p>'
+        +'<button id="st-conflict-ok" style="background:#e53935;border:none;color:#fff;padding:11px 28px;border-radius:6px;cursor:pointer;font-weight:700;font-size:.95rem;font-family:Oswald,sans-serif;letter-spacing:.05em">CHOOSE ANOTHER TIME</button>'
+        +'</div>';
+    document.body.appendChild(popup);
+    popup.addEventListener('click',function(e){if(e.target===popup) popup.remove();});
+    document.getElementById('st-conflict-ok').addEventListener('click',function(){popup.remove();var s=document.getElementById('st-time');if(s) s.focus();});
+}
+
 document.addEventListener('DOMContentLoaded',function(){
     var calBtn=document.getElementById('st-show-calendar'),calWrap=document.getElementById('st-cal-wrap');
     if(calBtn&&calWrap){calBtn.addEventListener('click',function(e){e.preventDefault();calWrap.style.display=calWrap.style.display==='none'?'block':'none';calBtn.textContent=calWrap.style.display==='none'?'View open times below':'Hide calendar';});}
+
+    // Fetch availability when date is selected
+    var dateField=document.getElementById('st-date');
+    if(dateField){
+        dateField.addEventListener('change',function(){
+            stBusyWindows=[];
+            stFilterTimeSlots(); // reset first
+            stFetchAvailability(this.value);
+        });
+    }
+
+    // Warn immediately if user picks a conflicting time slot
+    var timeField=document.getElementById('st-time');
+    if(timeField){
+        timeField.addEventListener('change',function(){
+            if(!this.value) return;
+            var slotStart=stHHMMtoMin(this.value);
+            var slotEnd=slotStart+stRideMins;
+            var conflict=stBusyWindows.some(function(b){
+                return slotStart < stHHMMtoMin(b.end) && slotEnd > stHHMMtoMin(b.start);
+            });
+            if(conflict){this.value='';stShowConflictPopup();}
+        });
+    }
 
     document.querySelectorAll('input[name="payment_method"]').forEach(function(r){r.addEventListener('change',function(){var cw=document.getElementById('st-card-wrap');if(cw) cw.style.display=this.value==='card'?'block':'none';});});
 
@@ -201,7 +302,9 @@ if(window.ST&&ST.sqAppId){var sq=document.createElement('script');sq.src='https:
     function showStep(n){stClosePac();for(var i=1;i<=4;i++){var s=document.getElementById('step-'+i);if(s) s.style.display=i===n?'block':'none';var ind=document.getElementById('step-ind-'+i);if(ind){ind.classList.remove('active','done');if(i===n) ind.classList.add('active');else if(i<n) ind.classList.add('done');}}}
 
     var next1=document.getElementById('st-next-1');
-    if(next1){next1.addEventListener('click',function(){var date=(document.getElementById('st-date')||{}).value||'',time=(document.getElementById('st-time')||{}).value||'',pickup=(document.getElementById('st-pickup')||{}).value||'',dropoff=(document.getElementById('st-dropoff')||{}).value||'',errEl=document.getElementById('st-form-error-1');if(!date||!time||!pickup||!dropoff){if(errEl){errEl.textContent='Please fill in date, time, pickup and dropoff.';errEl.style.display='block';}return;}if(!stCalcFare){if(errEl){errEl.textContent='Please wait while we calculate your route...';errEl.style.display='block';}var gc=new google.maps.Geocoder();gc.geocode({address:pickup+', Michigan, USA'},function(r1,s1){if(s1==='OK'&&r1[0]){stPickupLatLng=r1[0].geometry.location;stPlaceMarker('pickup',stPickupLatLng,pickup);gc.geocode({address:dropoff+', Michigan, USA'},function(r2,s2){if(s2==='OK'&&r2[0]){stDropoffLatLng=r2[0].geometry.location;stPlaceMarker('dropoff',stDropoffLatLng,dropoff);stTryRoute();setTimeout(function(){if(errEl) errEl.style.display='none';showStep(2);},1500);}});}});return;}if(errEl) errEl.style.display='none';showStep(2);});}
+    if(next1){next1.addEventListener('click',function(){var date=(document.getElementById('st-date')||{}).value||'',time=(document.getElementById('st-time')||{}).value||'',pickup=(document.getElementById('st-pickup')||{}).value||'',dropoff=(document.getElementById('st-dropoff')||{}).value||'',errEl=document.getElementById('st-form-error-1');if(!date||!time||!pickup||!dropoff){if(errEl){errEl.textContent='Please fill in date, time, pickup and dropoff.';errEl.style.display='block';}return;}
+        // Final conflict guard before advancing
+        if(time&&stBusyWindows.length){var slotStart=stHHMMtoMin(time),slotEnd=slotStart+stRideMins,conflict=stBusyWindows.some(function(b){return slotStart<stHHMMtoMin(b.end)&&slotEnd>stHHMMtoMin(b.start);});if(conflict){(document.getElementById('st-time')||{value:''}).value='';stShowConflictPopup();return;}}if(!stCalcFare){if(errEl){errEl.textContent='Please wait while we calculate your route...';errEl.style.display='block';}var gc=new google.maps.Geocoder();gc.geocode({address:pickup+', Michigan, USA'},function(r1,s1){if(s1==='OK'&&r1[0]){stPickupLatLng=r1[0].geometry.location;stPlaceMarker('pickup',stPickupLatLng,pickup);gc.geocode({address:dropoff+', Michigan, USA'},function(r2,s2){if(s2==='OK'&&r2[0]){stDropoffLatLng=r2[0].geometry.location;stPlaceMarker('dropoff',stDropoffLatLng,dropoff);stTryRoute();setTimeout(function(){if(errEl) errEl.style.display='none';showStep(2);},1500);}});}});return;}if(errEl) errEl.style.display='none';showStep(2);});}
 
     var next2=document.getElementById('st-next-2');
     if(next2){next2.addEventListener('click',function(){var name=(document.getElementById('st-name')||{}).value||'',phone=(document.getElementById('st-phone')||{}).value||'',errEl=document.getElementById('st-form-error-2');if(!name.trim()||!phone.trim()){if(errEl){errEl.textContent='Please enter your name and phone number.';errEl.style.display='block';}return;}if(errEl) errEl.style.display='none';stSyncTotals();showStep(3);});}
